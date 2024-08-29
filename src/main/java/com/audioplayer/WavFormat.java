@@ -7,6 +7,4 @@ public class WavFormat {
     public float byteRate;
     public int blockAlign;
     public int bitsPerSample;
-
-    public float duration;
 }

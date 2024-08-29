@@ -6,11 +6,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.text.DecimalFormat;
+import java.text.*;
 
 public class AudioPlayerController {
     @FXML
     private TextArea textArea;
+
+    private Playback playback;
 
     @FXML
     protected void onSelectFileClick() {
@@ -22,26 +24,65 @@ public class AudioPlayerController {
         }
 
         WavParser parser = new WavParser(file);
-        parser.read();
+        WavData wavData = parser.read();
 
-        byte[] data = parser.getData();
-        WavFormat format = parser.getWavFormat();
-        // send data and format to Playback object
+        if (wavData != null) {
+            if (playback != null) {
+                playback.reset(); // resets in case previous audio is still playing
+            }
 
-        DisplayFileAttributes(file, format);
+            playback = new Playback(wavData);
+            DisplayFileAttributes(file, wavData);
+        }
+        else {
+            textArea.setText("Invalid wav file");
+        }
     }
 
-    private void DisplayFileAttributes(File file, WavFormat format) {
-        textArea.setText(STR."\{file.getName()}");
+    @FXML
+    protected void onPlayPauseClick() {
+        if (playback != null) {
+            Thread taskThread = new Thread(() -> {
+                playback.playPause();
+            });
+            taskThread.start();
+        }
+    }
+
+    @FXML
+    protected void onResetClick() {
+        if (playback != null) {
+            playback.reset();
+        }
+    }
+
+    private void DisplayFileAttributes(File file, WavData wavData) {
+        String nameExcludingExtension = file.getName().substring(0, file.getName().length() - 4);
+        textArea.setText(STR."\{nameExcludingExtension}");
+
         textArea.appendText(STR."\n\{file.getPath()}");
-        textArea.appendText(STR."\n\{format.sampleRate} Hz");
 
-        double size = file.length() * Math.pow(10, -6);
-        String fileSize = new DecimalFormat("#.0").format(size);
-        textArea.appendText(STR."\n\{fileSize} MB");
-
-        String duration = String.format("%02d:%02d", ((int) format.duration % 3600) / 60, (int) format.duration % 60);
+        String duration = String.format("%02d:%02d", ((int) wavData.duration % 3600) / 60, (int) wavData.duration % 60);
         textArea.appendText(STR."\nDuration: \{duration}");
+
+        textArea.appendText(STR."\n\{wavData.format.sampleRate} Hz");
+
+        String fileSize = convertByteCountToReadableSize(file.length());
+        textArea.appendText(STR."\n\{fileSize}");
+    }
+
+    private String convertByteCountToReadableSize(long bytes) {
+        if (-1000 < bytes && bytes < 1000) {
+            return STR."\{bytes} B";
+        }
+
+        CharacterIterator iterator = new StringCharacterIterator("kMGTPE");
+        while (bytes <= -999_950 || bytes >= 999_950) {
+            bytes /= 1000;
+            iterator.next();
+        }
+
+        return String.format("%.1f %cB", bytes / 1000.0, iterator.current());
     }
 }
 

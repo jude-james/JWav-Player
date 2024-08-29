@@ -5,40 +5,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
 public class WavParser {
-    private byte[] data;
+    private float[][] samples;
     private byte[][] channelData;
-    private float[][] channelSamples;
 
     private int numSamplesPerChannel;
     private int numBytesDataPerChannel;
 
     private File file;
-    private WavFormat wavFormat;
+    private WavData wavData;
 
     public WavParser(File file) {
         this.file = file;
+        wavData = new WavData();
     }
 
-    public byte[] getData() {
-        return data;
-    }
-
-    public float[][] getChannelSamples() {
-        return channelSamples;
-    }
-
-    public WavFormat getWavFormat() {
-        return wavFormat;
-    }
-
-    public void read() {
+    public WavData read() {
         try {
             DataInputStream inputStream = new DataInputStream(new FileInputStream(file));
 
             LinkedHashMap<String, Long> chunkLookup = readSubChunks(inputStream);
 
             if (chunkLookup == null) {
-                return;
+                return null;
             }
 
             System.out.println(chunkLookup);
@@ -57,9 +45,12 @@ public class WavParser {
             inputStream = new DataInputStream(new FileInputStream(file));
             inputStream.skip(dataChunkOffset + 8);
             readSamples(inputStream);
+
+            return wavData;
         }
         catch (IOException e) {
             System.out.println("Invalid File");
+            return null;
         }
     }
 
@@ -116,13 +107,18 @@ public class WavParser {
 
     private void readFmtChunk(DataInputStream in) {
         try {
-            wavFormat = new WavFormat();
+            WavFormat wavFormat = new WavFormat();
             wavFormat.audioFormat = Short.reverseBytes(in.readShort());
             wavFormat.numChannels = Short.reverseBytes(in.readShort());
             wavFormat.sampleRate = Integer.reverseBytes(in.readInt());
             wavFormat.byteRate = Integer.reverseBytes(in.readInt());
             wavFormat.blockAlign = Short.reverseBytes(in.readShort());
             wavFormat.bitsPerSample = Short.reverseBytes(in.readShort());
+
+            wavData.format = wavFormat;
+
+            // 8 bits (or lower) sample sizes are always unsigned. 9 bits or higher are always signed
+            wavData.signed = wavFormat.bitsPerSample >= 9;
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -132,17 +128,18 @@ public class WavParser {
     private void readDataChunk(DataInputStream in) {
         try {
             int numBytesData = Integer.reverseBytes(in.readInt());
-            int numSamples = numBytesData / wavFormat.blockAlign;
-            numSamplesPerChannel = numSamples / wavFormat.numChannels;
-            numBytesDataPerChannel = numBytesData / wavFormat.numChannels;
+            int numSamples = numBytesData / wavData.format.blockAlign;
+            numSamplesPerChannel = numSamples / wavData.format.numChannels;
+            numBytesDataPerChannel = numBytesData / wavData.format.numChannels;
 
-            data = new byte[numBytesData];
+            byte[] data = new byte[numBytesData];
             in.read(data);
 
-            channelData = new byte[wavFormat.numChannels][numBytesDataPerChannel];
-            channelSamples = new float[wavFormat.numChannels][numSamplesPerChannel];
+            wavData.data = data;
+            wavData.duration = numSamples / wavData.format.sampleRate;
 
-            wavFormat.duration = numSamples / wavFormat.sampleRate;
+            samples = new float[wavData.format.numChannels][numSamplesPerChannel];
+            channelData = new byte[wavData.format.numChannels][numBytesDataPerChannel];
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -151,23 +148,25 @@ public class WavParser {
 
     private void readSamples(DataInputStream in) {
         try {
-            //TODO: Move if-statements outside loop & move for loops into thread
+            //TODO: Move if-statements outside loop, move for loops into thread & read 24-bit samples
             for (int sample = 0; sample < numSamplesPerChannel; sample++) {
-                for (int channel = 0; channel < wavFormat.numChannels; channel++) {
-                    if (wavFormat.bitsPerSample == 8) {
-                        channelSamples[channel][sample] = (byte) (Integer.reverse(in.readByte()) >>> (Integer.SIZE - Byte.SIZE));
+                for (int channel = 0; channel < wavData.format.numChannels; channel++) {
+                    if (wavData.format.bitsPerSample == 8) {
+                        samples[channel][sample] = (byte) (Integer.reverse(in.readByte()) >>> (Integer.SIZE - Byte.SIZE));
                     }
-                    else if (wavFormat.bitsPerSample == 16) {
-                        channelSamples[channel][sample] = Short.reverseBytes(in.readShort());
+                    else if (wavData.format.bitsPerSample == 16) {
+                        samples[channel][sample] = Short.reverseBytes(in.readShort());
                     }
-                    else if (wavFormat.bitsPerSample == 32) {
-                        channelSamples[channel][sample] = Integer.reverseBytes(in.readInt());
+                    else if (wavData.format.bitsPerSample == 32) {
+                        samples[channel][sample] = Integer.reverseBytes(in.readInt());
                     }
                     else {
-                        System.out.println(STR."Unsupported bits per sample: \{wavFormat.bitsPerSample}");
+                        System.out.println(STR."Unsupported bits per sample: \{wavData.format.bitsPerSample}");
                     }
                 }
             }
+
+            wavData.samples = samples;
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -177,7 +176,7 @@ public class WavParser {
     private void readDataPerChannel(DataInputStream in) {
     }
 
-    public void write() {
+    public void write(WavData wavData) {
     }
 }
 
