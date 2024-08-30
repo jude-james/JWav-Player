@@ -117,7 +117,7 @@ public class WavParser {
 
             wavData.format = wavFormat;
 
-            // 8 bits (or lower) sample sizes are always unsigned. 9 bits or higher are always signed
+            // 8-bit (or lower) sample sizes are always unsigned. 9 bits or higher are always signed
             wavData.signed = wavFormat.bitsPerSample >= 9;
         }
         catch (IOException e) {

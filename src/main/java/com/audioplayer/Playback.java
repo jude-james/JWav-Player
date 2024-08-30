@@ -1,15 +1,11 @@
 package com.audioplayer;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.*;
 
 public class Playback {
     private WavData wavData;
 
     private byte[] currentData;
-    private byte[] forwardData;
     private byte[] reverseData;
 
     private float currentSampleRate;
@@ -25,7 +21,6 @@ public class Playback {
         this.wavData = wavData;
 
         currentData = wavData.data;
-        forwardData = wavData.data;
         reverseData = new byte[wavData.data.length];
         for (int i = 0; i < wavData.data.length; i++) {
             reverseData[i] = wavData.data[wavData.data.length - 1 - i];
@@ -46,6 +41,13 @@ public class Playback {
         catch (LineUnavailableException e) {
             throw new RuntimeException(e);
         }
+        catch (IllegalArgumentException e) {
+            System.out.println("Java does not support the specified audio format");
+        }
+    }
+
+    public void transposePitch(int st) {
+        currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) st / 12d));
     }
 
     public void playPause() {
@@ -62,19 +64,10 @@ public class Playback {
     private void play() {
         createLine();
 
-        /*
-        int frameSize = wavData.format.blockAlign;
-        byte[] buffer = new byte[frameSize];
-
-        for (int i = 0; i < currentData.length; i += frameSize) {
-            for (int j = 0; j < frameSize; j++) {
-                buffer[j] = currentData[i + j];
-            }
-            line.write(buffer, 0, frameSize);
+        if (line == null) {
+            return;
         }
-         */
 
-        // Simpler way of playing data, but occasionally breaks after a while
         line.write(currentData, 0, currentData.length);
 
         line.drain();
@@ -82,6 +75,10 @@ public class Playback {
     }
 
     private void pause() {
+        if (line == null) {
+            return;
+        }
+
         int framePosition = line.getFramePosition();
         int frameSize = wavData.format.blockAlign;
         int dataPosition = framePosition * frameSize;
@@ -95,25 +92,31 @@ public class Playback {
     }
 
     public void reset() {
+        if (line == null) {
+            return;
+        }
+
         paused = true;
 
-        if (line != null) {
-            line.close();
-        }
+        line.close();
 
         if (reversed) {
             currentData = reverseData;
         }
         else {
-            currentData = forwardData;
+            currentData = wavData.data;
         }
     }
 
     public void reverse() {
+        if (!paused) {
+            return;
+        }
+
         bigEndian = !bigEndian;
 
         if (reversed) {
-            currentData = forwardData;
+            currentData = wavData.data;
             reversed = false;
         }
         else {

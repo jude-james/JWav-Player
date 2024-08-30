@@ -1,6 +1,7 @@
 package com.audioplayer;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -12,10 +13,13 @@ public class AudioPlayerController {
     @FXML
     private TextArea textArea;
 
+    @FXML
+    private Slider pitchSlider;
+
     private Playback playback;
 
     @FXML
-    protected void onSelectFileClick() {
+    private void onSelectFileClick() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(new Stage());
 
@@ -40,8 +44,11 @@ public class AudioPlayerController {
     }
 
     @FXML
-    protected void onPlayPauseClick() {
+    private void onPlayPauseClick() {
         if (playback != null) {
+            playback.transposePitch((int) pitchSlider.getValue());
+            System.out.println((int) pitchSlider.getValue());
+
             Thread taskThread = new Thread(() -> {
                 playback.playPause();
             });
@@ -50,15 +57,22 @@ public class AudioPlayerController {
     }
 
     @FXML
-    protected void onResetClick() {
+    private void onResetClick() {
         if (playback != null) {
             playback.reset();
         }
     }
 
+    @FXML
+    private void onReverseClick() {
+        if (playback != null) {
+            playback.reverse();
+        }
+    }
+
     private void DisplayFileAttributes(File file, WavData wavData) {
         String nameExcludingExtension = file.getName().substring(0, file.getName().length() - 4);
-        textArea.setText(STR."\{nameExcludingExtension}");
+        textArea.setText(nameExcludingExtension);
 
         textArea.appendText(STR."\n\{file.getPath()}");
 
@@ -76,7 +90,7 @@ public class AudioPlayerController {
             return STR."\{bytes} B";
         }
 
-        CharacterIterator iterator = new StringCharacterIterator("kMGTPE");
+        CharacterIterator iterator = new StringCharacterIterator("KMGTPE");
         while (bytes <= -999_950 || bytes >= 999_950) {
             bytes /= 1000;
             iterator.next();
