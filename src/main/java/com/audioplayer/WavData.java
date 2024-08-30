@@ -6,4 +6,5 @@ public class WavData {
     public byte[] data;
     public float[][] samples;
     public float duration;
+    public boolean endianness = false; // WAV uses little-endian order (false = little)
 }

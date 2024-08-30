@@ -4,14 +4,46 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: indianred;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.audioplayer.AudioPlayerController">
    <children>
-      <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#onSelectFileClick" prefHeight="50.0" prefWidth="150.0" text="Select File" />
-      <TextArea fx:id="textArea" editable="false" layoutX="173.0" layoutY="14.0" prefHeight="120.0" prefWidth="613.0" promptText="File Name:" />
-      <Button layoutX="14.0" layoutY="469.0" mnemonicParsing="false" onAction="#onPlayPauseClick" prefHeight="50.0" prefWidth="150.0" text="Play / Pause" />
-      <Button layoutX="14.0" layoutY="534.0" mnemonicParsing="false" onAction="#onResetClick" prefHeight="50.0" prefWidth="150.0" text="Reset" />
-      <Button layoutX="636.0" layoutY="536.0" mnemonicParsing="false" onAction="#onReverseClick" prefHeight="50.0" prefWidth="150.0" text="Reverse" />
-      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="185.0" layoutY="483.0" majorTickUnit="4.0" max="24.0" min="-24.0" minorTickCount="4" prefHeight="102.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+      <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#onSelectFileClick" prefHeight="50.0" prefWidth="150.0" text="Select File">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font></Button>
+      <TextArea fx:id="textArea" editable="false" layoutX="173.0" layoutY="14.0" prefHeight="120.0" prefWidth="613.0" promptText="File Name:">
+         <font>
+            <Font name="SF Mono Regular" size="15.0" />
+         </font></TextArea>
+      <Button layoutX="14.0" layoutY="469.0" mnemonicParsing="false" onAction="#onPlayPauseClick" prefHeight="50.0" prefWidth="150.0" text="Play / Pause">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font></Button>
+      <Button layoutX="14.0" layoutY="534.0" mnemonicParsing="false" onAction="#onResetClick" prefHeight="50.0" prefWidth="150.0" text="Reset">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font></Button>
+      <Button layoutX="636.0" layoutY="536.0" mnemonicParsing="false" onAction="#onReverseClick" prefHeight="50.0" prefWidth="150.0" text="Reverse">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font></Button>
+      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="185.0" layoutY="483.0" majorTickUnit="4.0" max="24.0" min="-24.0" prefHeight="102.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+      <Text fx:id="sliderValue" layoutX="357.0" layoutY="581.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.0 st" textAlignment="CENTER" wrappingWidth="87.21630859375">
+         <font>
+            <Font name="SF Mono Regular" size="15.0" />
+         </font>
+      </Text>
+      <Text layoutX="357.0" layoutY="488.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pitch" textAlignment="CENTER" wrappingWidth="87.21630859375">
+         <font>
+            <Font name="SF Mono Bold" size="15.0" />
+         </font>
+      </Text>
+      <Button layoutX="636.0" layoutY="469.0" mnemonicParsing="false" onAction="#onSaveClick" prefHeight="50.0" prefWidth="150.0" text="Save">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>

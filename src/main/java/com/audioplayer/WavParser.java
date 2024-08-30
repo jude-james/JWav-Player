@@ -1,6 +1,8 @@
 package com.audioplayer;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
@@ -174,9 +176,53 @@ public class WavParser {
     }
 
     private void readDataPerChannel(DataInputStream in) {
+        // for playing in mono
     }
 
-    public void write(WavData wavData) {
+    public void write(File file, WavData wavData) {
+        try {
+            DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(file));
+
+            // Writes "RIFF" chunk
+            outputStream.writeBytes("RIFF");
+            outputStream.write(intToByteArray(36 + wavData.data.length)); // chunkSize (= 36 + subChunk2Size)
+            outputStream.writeBytes("WAVE");
+
+            // Format chunk
+            outputStream.writeBytes("fmt ");
+            outputStream.write(intToByteArray(16)); // subChunk1Size (=16)
+            outputStream.write(shortToByteArray((short) wavData.format.audioFormat));
+            outputStream.write(shortToByteArray((short) wavData.format.numChannels));
+            outputStream.write(intToByteArray((int) wavData.format.sampleRate));
+            outputStream.write(intToByteArray((int) wavData.format.byteRate));
+            outputStream.write(shortToByteArray((short) wavData.format.blockAlign));
+            outputStream.write(shortToByteArray((short) wavData.format.bitsPerSample));
+
+            // Data chunk
+            outputStream.writeBytes("data");
+            outputStream.write(intToByteArray(wavData.data.length));
+            outputStream.write(wavData.data);
+
+            outputStream.flush();
+            outputStream.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private byte[] intToByteArray(int value) {
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putInt(value);
+        return buffer.array();
+    }
+
+    private byte[] shortToByteArray(short value) {
+        ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putShort(value);
+        return buffer.array();
     }
 }
 
