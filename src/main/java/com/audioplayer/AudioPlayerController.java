@@ -2,8 +2,12 @@ package com.audioplayer;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -11,6 +15,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.net.URL;
 import java.text.*;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class AudioPlayerController implements Initializable {
@@ -22,6 +27,12 @@ public class AudioPlayerController implements Initializable {
 
     @FXML
     private Text sliderValue;
+
+    @FXML
+    private TextField tempo;
+
+    @FXML
+    private LineChart<Number, Number> lineChart;
 
     private File file;
     private File fileToSave;
@@ -47,7 +58,8 @@ public class AudioPlayerController implements Initializable {
             }
 
             playback = new Playback(wavData);
-            DisplayFileAttributes(wavData);
+            displayFileAttributes(wavData);
+            populateChart(wavData);
         }
         else {
             textArea.setText("Invalid wav file");
@@ -79,6 +91,15 @@ public class AudioPlayerController implements Initializable {
     }
 
     @FXML
+    private void onBeatSwapClick() {
+        if (playback != null) {
+            if (!Objects.equals(tempo.getText(), "")) {
+                playback.beatSwap(Integer.parseInt(tempo.getText()));
+            }
+        }
+    }
+
+    @FXML
     private void onSaveClick() {
         if (playback == null) {
             return;
@@ -86,7 +107,7 @@ public class AudioPlayerController implements Initializable {
 
         String oldName = fileToSave.getName();
         String newName = new StringBuffer(oldName)
-                .insert(oldName.length() - 4, "_save").toString();
+                .insert(oldName.length() - 4, " Copy").toString();
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialFileName(newName);
@@ -105,9 +126,10 @@ public class AudioPlayerController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         updateSliderValue();
+        restrictTempoValueToNumbers();
     }
 
-    private void DisplayFileAttributes(WavData wavData) {
+    private void displayFileAttributes(WavData wavData) {
         String nameExcludingExtension = file.getName().substring(0, file.getName().length() - 4);
         textArea.setText(nameExcludingExtension);
 
@@ -148,5 +170,32 @@ public class AudioPlayerController implements Initializable {
             }
         });
     }
-}
 
+    private void restrictTempoValueToNumbers() {
+        tempo.textProperty().addListener((_, _, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                tempo.setText(newValue.replaceAll("\\D", ""));
+            }
+        });
+    }
+
+    private void populateChart(WavData wavData) {
+        lineChart.getData().clear();
+
+        NumberAxis xAxis = new NumberAxis();
+        NumberAxis yAxis = new NumberAxis();
+        
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+
+        int n = 1; // from 1 to length
+        int downSampleScale = wavData.samples[0].length / n;
+
+        for (int i = 0; i < wavData.samples[0].length; i+= 500) {
+            int x = i;
+            float y = wavData.samples[0][i];
+            series.getData().add(new XYChart.Data<>(x, y));
+        }
+
+        lineChart.getData().add(series);
+    }
+}

@@ -52,6 +52,56 @@ public class Playback {
         }
     }
 
+    public void beatSwap(int tempo) {
+        // tunebat.com for getting tempos
+
+        int frameSize = wavData.format.blockAlign;
+
+        float samplesPerMinute = wavData.format.sampleRate * 60;
+
+        float framesPerMinute = samplesPerMinute * frameSize;
+
+        // change framesPerBeat for different beat amount
+        int framesPerBeat = Math.round(framesPerMinute / tempo) / (4); // <-- magical 4
+
+        int bytesPerBeat = framesPerBeat * frameSize;
+
+        int numFrames = currentData.length / frameSize;
+        int numBeats = numFrames / framesPerBeat;
+
+        byte[][] beats = new byte[numBeats][bytesPerBeat];
+
+        for (int i = 0; i < numBeats; i++) {
+            for (int k = 0; k < bytesPerBeat; k++) {
+                beats[i][k] = currentData[k + (i * bytesPerBeat)];
+            }
+        }
+
+        int offset = 2;
+        int direction = 1;
+
+        for (int i = 0; i < numBeats; i++) {
+            if (i + offset >= numBeats) {
+                break;
+            }
+
+            byte[] nextBeat = beats[i + offset];
+
+            for (int j = 0; j < beats[i].length; j++) {
+                currentData[j + (i * bytesPerBeat)] = nextBeat[j];
+                // currentData[j + (i * bytesPerBeat)] = beats[i][j]; // clones current data by reading beats in order
+            }
+
+            offset -= (2 * direction);
+            if (offset == -2) {
+                direction = -1;
+            }
+            else if (offset == 2) {
+                direction = 1;
+            }
+        }
+    }
+
     public void transposePitch(int semiTones) {
         currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d));
     }

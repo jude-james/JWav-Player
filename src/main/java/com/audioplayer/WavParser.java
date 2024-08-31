@@ -130,15 +130,14 @@ public class WavParser {
     private void readDataChunk(DataInputStream in) {
         try {
             int numBytesData = Integer.reverseBytes(in.readInt());
-            int numSamples = numBytesData / wavData.format.blockAlign;
-            numSamplesPerChannel = numSamples / wavData.format.numChannels;
+            numSamplesPerChannel = numBytesData / wavData.format.blockAlign;
             numBytesDataPerChannel = numBytesData / wavData.format.numChannels;
 
             byte[] data = new byte[numBytesData];
-            in.read(data);
+            in.readFully(data);
 
             wavData.data = data;
-            wavData.duration = numSamples / wavData.format.sampleRate;
+            wavData.duration = numSamplesPerChannel / wavData.format.sampleRate;
 
             samples = new float[wavData.format.numChannels][numSamplesPerChannel];
             channelData = new byte[wavData.format.numChannels][numBytesDataPerChannel];
@@ -183,7 +182,7 @@ public class WavParser {
         try {
             DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(file));
 
-            // Writes "RIFF" chunk
+            // Writes RIFF chunk
             outputStream.writeBytes("RIFF");
             outputStream.write(intToByteArray(36 + wavData.data.length)); // chunkSize (= 36 + subChunk2Size)
             outputStream.writeBytes("WAVE");
@@ -225,4 +224,3 @@ public class WavParser {
         return buffer.array();
     }
 }
-
