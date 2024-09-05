@@ -7,14 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 
 public class WavParser {
-    private float[][] samples;
-    private byte[][] channelData;
-
-    private int numSamplesPerChannel;
-    private int numBytesDataPerChannel;
-
-    private File file;
-    private WavData wavData;
+    private final File file;
+    private final WavData wavData;
 
     public WavParser(File file) {
         this.file = file;
@@ -31,8 +25,6 @@ public class WavParser {
                 return null;
             }
 
-            System.out.println(chunkLookup);
-
             long fmtChunkOffset = chunkLookup.get("fmt ");
             long dataChunkOffset = chunkLookup.get("data");
 
@@ -44,9 +36,7 @@ public class WavParser {
             inputStream.skip(dataChunkOffset + 4);
             readDataChunk(inputStream);
 
-            inputStream = new DataInputStream(new FileInputStream(file));
-            inputStream.skip(dataChunkOffset + 8);
-            readSamples(inputStream);
+            inputStream.close();
 
             return wavData;
         }
@@ -130,55 +120,45 @@ public class WavParser {
     private void readDataChunk(DataInputStream in) {
         try {
             int numBytesData = Integer.reverseBytes(in.readInt());
-            numSamplesPerChannel = numBytesData / wavData.format.blockAlign;
-            numBytesDataPerChannel = numBytesData / wavData.format.numChannels;
 
             byte[] data = new byte[numBytesData];
             in.readFully(data);
-
             wavData.data = data;
-            wavData.duration = numSamplesPerChannel / wavData.format.sampleRate;
 
-            samples = new float[wavData.format.numChannels][numSamplesPerChannel];
-            channelData = new byte[wavData.format.numChannels][numBytesDataPerChannel];
+            int numSamplesPerChannel = numBytesData / wavData.format.blockAlign;
+            wavData.duration = numSamplesPerChannel / wavData.format.sampleRate;
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void readSamples(DataInputStream in) {
-        try {
-            //TODO: Move if-statements outside loop, move for loops into thread & read 24-bit samples
-            for (int sample = 0; sample < numSamplesPerChannel; sample++) {
-                for (int channel = 0; channel < wavData.format.numChannels; channel++) {
-                    if (wavData.format.bitsPerSample == 8) {
-                        samples[channel][sample] = (byte) (Integer.reverse(in.readByte()) >>> (Integer.SIZE - Byte.SIZE));
-                    }
-                    else if (wavData.format.bitsPerSample == 16) {
-                        samples[channel][sample] = Short.reverseBytes(in.readShort());
-                    }
-                    else if (wavData.format.bitsPerSample == 32) {
-                        samples[channel][sample] = Integer.reverseBytes(in.readInt());
-                    }
-                    else {
-                        System.out.println(STR."Unsupported bits per sample: \{wavData.format.bitsPerSample}");
-                    }
+    public static float[][] getSamples(WavData wavData) {
+        int numSamplesPerChannel = wavData.data.length / wavData.format.blockAlign;
+        float[][] samples = new float[wavData.format.numChannels][numSamplesPerChannel];
+
+        ByteBuffer buffer = ByteBuffer.wrap(wavData.data).order(ByteOrder.LITTLE_ENDIAN);
+
+        int sampleBits = wavData.format.bitsPerSample;
+        if (sampleBits != 8 && sampleBits != 16 && sampleBits != 32) {
+            System.out.println(STR."Unsupported bits per sample: \{sampleBits}");
+            return samples;
+        }
+
+        for (int sample = 0; sample < numSamplesPerChannel; sample++) {
+            for (int channel = 0; channel < wavData.format.numChannels; channel++) {
+                if (buffer.position() < wavData.data.length) {
+                    if (sampleBits == 8) samples[channel][sample] = (buffer.get() & 0xff) - 128; // converting to unsigned
+                    else if (sampleBits == 16) samples[channel][sample] = buffer.getShort();
+                    else samples[channel][sample] = buffer.getInt();
                 }
             }
+        }
 
-            wavData.samples = samples;
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return samples;
     }
 
-    private void readDataPerChannel(DataInputStream in) {
-        // for playing in mono
-    }
-
-    public void write(File file, WavData wavData) {
+    public static void write(File file, WavData wavData) {
         try {
             DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(file));
 
@@ -210,14 +190,14 @@ public class WavParser {
         }
     }
 
-    private byte[] intToByteArray(int value) {
+    private static byte[] intToByteArray(int value) {
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(value);
         return buffer.array();
     }
 
-    private byte[] shortToByteArray(short value) {
+    private static byte[] shortToByteArray(short value) {
         ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putShort(value);

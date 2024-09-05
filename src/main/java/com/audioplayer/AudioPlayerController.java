@@ -1,5 +1,6 @@
 package com.audioplayer;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
@@ -32,7 +33,10 @@ public class AudioPlayerController implements Initializable {
     private TextField tempo;
 
     @FXML
-    private LineChart<Number, Number> lineChart;
+    private LineChart<Number, Number> lineChart1;
+
+    @FXML
+    private LineChart<Number, Number> lineChart2;
 
     private File file;
     private File fileToSave;
@@ -92,6 +96,10 @@ public class AudioPlayerController implements Initializable {
 
     @FXML
     private void onBeatSwapClick() {
+        if (tempo.getText().length() > 3) {
+            tempo.setText("1000");
+        }
+
         if (playback != null) {
             if (!Objects.equals(tempo.getText(), "")) {
                 playback.beatSwap(Integer.parseInt(tempo.getText()));
@@ -118,9 +126,32 @@ public class AudioPlayerController implements Initializable {
             return;
         }
 
-        WavParser parser = new WavParser(newFile);
         WavData wavData = playback.getWavData();
-        parser.write(newFile, wavData);
+        WavParser.write(newFile, wavData);
+    }
+
+    @FXML
+    private void onLeftChannelClick() {
+        if (playback != null) {
+            playback.setChannel(0);
+        }
+    }
+
+    @FXML
+    private void onRightChannelClick() {
+        if (playback != null) {
+            playback.setChannel(1);
+        }
+    }
+
+    @FXML
+    private void onMonoClick() {
+        if (playback != null) {
+            WavData wavData = playback.getWavData();
+            float[][] samples = WavParser.getSamples(wavData);
+        }
+        // sum samples then divide by num channels
+        // convert samples back to data
     }
 
     @Override
@@ -179,23 +210,42 @@ public class AudioPlayerController implements Initializable {
         });
     }
 
-    private void populateChart(WavData wavData) {
-        lineChart.getData().clear();
+    public void populateChart(WavData wavData) {
+        float[][] samples = WavParser.getSamples(wavData);
 
-        NumberAxis xAxis = new NumberAxis();
-        NumberAxis yAxis = new NumberAxis();
-        
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        NumberAxis yAxis1 = (NumberAxis) lineChart1.getYAxis();
+        NumberAxis xAxis1 = (NumberAxis) lineChart1.getXAxis();
+        NumberAxis xAxis2 = (NumberAxis) lineChart2.getXAxis();
+        NumberAxis yAxis2 = (NumberAxis) lineChart2.getYAxis();
 
-        int n = 1; // from 1 to length
-        int downSampleScale = wavData.samples[0].length / n;
+        yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+        yAxis1.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1) - 1);
+        yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+        yAxis2.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1) - 1);
+        xAxis1.setUpperBound(samples[0].length);
+        xAxis2.setUpperBound(samples[1].length);
 
-        for (int i = 0; i < wavData.samples[0].length; i+= 500) {
+        XYChart.Series<Number, Number> leftChannel = new XYChart.Series<>();
+        XYChart.Series<Number, Number> rightChannel = new XYChart.Series<>();
+
+        int n = 10_000;
+        int downSampleScale = samples[0].length / n;
+
+        for (int i = 0; i < samples[0].length; i+= downSampleScale) {
             int x = i;
-            float y = wavData.samples[0][i];
-            series.getData().add(new XYChart.Data<>(x, y));
+            float yL = samples[0][i];
+            float yR = samples[1][i];
+
+            Platform.runLater(() -> {
+                leftChannel.getData().add(new XYChart.Data<>(x, yL));
+                rightChannel.getData().add(new XYChart.Data<>(x, yR));
+            });
         }
 
-        lineChart.getData().add(series);
+        lineChart1.getData().clear();
+        lineChart2.getData().clear();
+
+        lineChart1.getData().add(leftChannel);
+        lineChart2.getData().add(rightChannel);
     }
 }

@@ -7,6 +7,7 @@ public class Playback {
 
     private byte[] currentData;
     private byte[] reverseData;
+    private byte[][] dataPerChannel;
 
     private float currentSampleRate;
 
@@ -22,6 +23,7 @@ public class Playback {
         currentSampleRate = wavData.format.sampleRate;
 
         reverseFrameOrder();
+        splitDataPerChannel();
     }
 
     private void createLine() {
@@ -52,53 +54,78 @@ public class Playback {
         }
     }
 
-    public void beatSwap(int tempo) {
-        // tunebat.com for getting tempos
+    private void splitDataPerChannel() {
+        // do reverse data per channel
+        dataPerChannel = new byte[wavData.format.numChannels][wavData.data.length];
 
         int frameSize = wavData.format.blockAlign;
+        int bytesPerSample = wavData.format.bitsPerSample / 8;
 
-        float samplesPerMinute = wavData.format.sampleRate * 60;
+        for (int n = 0; n < wavData.format.numChannels; n++) {
+            for (int i = 0; i < wavData.data.length; i += frameSize) {
+                for (int k = 0; k < bytesPerSample; k++) {
+                    dataPerChannel[n][i+k+(n*bytesPerSample)] = wavData.data[i+k+(n*bytesPerSample)];
+                }
+            }
+        }
+    }
 
-        float framesPerMinute = samplesPerMinute * frameSize;
+    public void setChannel(int channel) {
+        if (!paused) {
+            return;
+        }
 
-        // change framesPerBeat for different beat amount
-        int framesPerBeat = Math.round(framesPerMinute / tempo) / (4); // <-- magical 4
+        if (channel <= wavData.format.numChannels) {
+            /*
+            for (int i = 0; i < currentData.length; i++) {
+                currentData[i] = dataPerChannel[channel][i];
+            }
+             */
+            currentData = dataPerChannel[channel];
+        }
+    }
 
-        int bytesPerBeat = framesPerBeat * frameSize;
+    public void beatSwap(int tempo) {
+        /*
+            The given sample rate is actually num samples per second per channel
+            so samples per minute per channel = sample rate * 60
+            => samples per minute = sample rate * 60 * num channels
+            => frames per minute = samples per minute / num channels
+            num channels cancel out
+            => frames per minute = samples per minute = sample rate * 60
+            frames per minute = sample rate * 60 !
+         */
 
-        int numFrames = currentData.length / frameSize;
+        float framesPerMinute = wavData.format.sampleRate * 60;
+        int framesPerBeat = Math.round(framesPerMinute / tempo);
+        int bytesPerBeat = framesPerBeat * wavData.format.blockAlign; // frame size
+        int numFrames = currentData.length / wavData.format.blockAlign;
         int numBeats = numFrames / framesPerBeat;
 
-        byte[][] beats = new byte[numBeats][bytesPerBeat];
-
+        byte[][] dataPerBeat = new byte[numBeats][bytesPerBeat];
         for (int i = 0; i < numBeats; i++) {
             for (int k = 0; k < bytesPerBeat; k++) {
-                beats[i][k] = currentData[k + (i * bytesPerBeat)];
+                dataPerBeat[i][k] = currentData[k + (i * bytesPerBeat)];
             }
         }
 
         int offset = 2;
-        int direction = 1;
+        int direction = -2;
 
         for (int i = 0; i < numBeats; i++) {
             if (i + offset >= numBeats) {
                 break;
             }
 
-            byte[] nextBeat = beats[i + offset];
-
-            for (int j = 0; j < beats[i].length; j++) {
+            // swaps current data at beat i with the beat which is +- 2 from i
+            byte[] nextBeat = dataPerBeat[i + offset];
+            for (int j = 0; j < dataPerBeat[i].length; j++) {
                 currentData[j + (i * bytesPerBeat)] = nextBeat[j];
-                // currentData[j + (i * bytesPerBeat)] = beats[i][j]; // clones current data by reading beats in order
             }
 
-            offset -= (2 * direction);
-            if (offset == -2) {
-                direction = -1;
-            }
-            else if (offset == 2) {
-                direction = 1;
-            }
+            offset += direction;
+            if (offset == -2) direction = 2;
+            else if (offset == 2) direction = -2;
         }
     }
 
@@ -180,7 +207,6 @@ public class Playback {
     }
 
     public WavData getWavData() {
-        // Atm the only values that can change are the sample rate & the data
         WavFormat currentFormat = new WavFormat();
         currentFormat.audioFormat = wavData.format.audioFormat;
         currentFormat.numChannels = wavData.format.numChannels;
@@ -193,7 +219,6 @@ public class Playback {
         currentWavData.format = currentFormat;
         currentWavData.signed = wavData.signed;
         currentWavData.data = currentData;
-        currentWavData.samples = wavData.samples;
         currentWavData.duration = wavData.duration;
 
         return currentWavData;

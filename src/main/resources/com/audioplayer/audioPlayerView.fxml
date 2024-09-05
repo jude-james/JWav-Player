@@ -10,35 +10,35 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: indianred;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.audioplayer.AudioPlayerController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1300.0" style="-fx-background-color: indianred;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.audioplayer.AudioPlayerController">
    <children>
       <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#onSelectFileClick" prefHeight="50.0" prefWidth="150.0" text="Select File">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font></Button>
-      <TextArea fx:id="textArea" editable="false" layoutX="173.0" layoutY="14.0" prefHeight="120.0" prefWidth="613.0" promptText="File Name:">
+      <TextArea fx:id="textArea" editable="false" layoutX="173.0" layoutY="14.0" prefHeight="110.0" prefWidth="819.0" promptText="File Name:">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
          </font></TextArea>
-      <Button layoutX="14.0" layoutY="469.0" mnemonicParsing="false" onAction="#onPlayPauseClick" prefHeight="50.0" prefWidth="150.0" text="Play / Pause">
+      <Button layoutX="20.0" layoutY="558.0" mnemonicParsing="false" onAction="#onPlayPauseClick" prefHeight="50.0" prefWidth="150.0" text="Play / Pause">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font></Button>
-      <Button layoutX="14.0" layoutY="534.0" mnemonicParsing="false" onAction="#onResetClick" prefHeight="50.0" prefWidth="150.0" text="Reset">
+      <Button layoutX="20.0" layoutY="623.0" mnemonicParsing="false" onAction="#onResetClick" prefHeight="50.0" prefWidth="150.0" text="Reset">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font></Button>
-      <Button layoutX="636.0" layoutY="536.0" mnemonicParsing="false" onAction="#onReverseClick" prefHeight="50.0" prefWidth="150.0" text="Reverse">
+      <Button layoutX="642.0" layoutY="625.0" mnemonicParsing="false" onAction="#onReverseClick" prefHeight="50.0" prefWidth="150.0" text="Reverse">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font></Button>
-      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="185.0" layoutY="483.0" majorTickUnit="4.0" max="24.0" min="-24.0" prefHeight="102.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
-      <Text fx:id="sliderValue" layoutX="357.0" layoutY="581.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.0 st" textAlignment="CENTER" wrappingWidth="87.21630859375">
+      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="191.0" layoutY="572.0" majorTickUnit="4.0" max="24.0" min="-24.0" prefHeight="102.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+      <Text fx:id="sliderValue" layoutX="363.0" layoutY="670.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.0 st" textAlignment="CENTER" wrappingWidth="87.21630859375">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
          </font>
       </Text>
-      <Text layoutX="357.0" layoutY="488.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pitch" textAlignment="CENTER" wrappingWidth="87.21630859375">
+      <Text layoutX="363.0" layoutY="577.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pitch" textAlignment="CENTER" wrappingWidth="87.21630859375">
          <font>
             <Font name="SF Mono Bold" size="15.0" />
          </font>
@@ -48,23 +48,46 @@
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <LineChart fx:id="lineChart" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="127.0" legendVisible="false" prefHeight="348.0" prefWidth="806.0">
+      <LineChart fx:id="lineChart1" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="173.0" legendVisible="false" prefHeight="200.0" prefWidth="1250.0" verticalGridLinesVisible="false">
         <xAxis>
-          <NumberAxis animated="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+          <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
         </xAxis>
         <yAxis>
-          <NumberAxis animated="false" autoRanging="false" lowerBound="-32768.0" minorTickVisible="false" side="LEFT" tickLabelsVisible="false" tickMarkVisible="false" upperBound="32768.0" />
+          <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="LEFT" tickLabelsVisible="false" tickMarkVisible="false" upperBound="0.0" />
         </yAxis>
       </LineChart>
-      <Button layoutX="711.0" layoutY="469.0" mnemonicParsing="false" onAction="#onBeatSwapClick" prefHeight="50.0" prefWidth="75.0" text="SWAP 2&amp;4" textAlignment="CENTER" wrapText="true">
+      <Button layoutX="717.0" layoutY="558.0" mnemonicParsing="false" onAction="#onBeatSwapClick" prefHeight="50.0" prefWidth="75.0" text="SWAP 2&amp;4" textAlignment="CENTER" wrapText="true">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <TextField fx:id="tempo" layoutX="636.0" layoutY="469.0" prefHeight="50.0" prefWidth="75.0" promptText="BPM?">
+      <TextField fx:id="tempo" layoutX="642.0" layoutY="558.0" prefHeight="50.0" prefWidth="75.0" promptText="BPM?">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
          </font>
       </TextField>
+      <Button layoutX="1236.0" layoutY="193.0" mnemonicParsing="false" onAction="#onLeftChannelClick" prefHeight="160.0" prefWidth="60.0" text="L">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button layoutX="1236.0" layoutY="369.0" mnemonicParsing="false" onAction="#onRightChannelClick" prefHeight="160.0" prefWidth="60.0" text="R">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font>
+      </Button>
+      <Button layoutX="856.0" layoutY="557.0" mnemonicParsing="false" onAction="#onMonoClick" prefHeight="50.0" prefWidth="250.0" text="Mono">
+         <font>
+            <Font name="SF Mono Bold" size="13.0" />
+         </font>
+      </Button>
+      <LineChart fx:id="lineChart2" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="350.0" legendVisible="false" prefHeight="200.0" prefWidth="1250.0" verticalGridLinesVisible="false">
+         <xAxis>
+            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+         </xAxis>
+         <yAxis>
+            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="LEFT" tickLabelsVisible="false" tickMarkVisible="false" upperBound="0.0" />
+         </yAxis>
+      </LineChart>
    </children>
 </AnchorPane>
