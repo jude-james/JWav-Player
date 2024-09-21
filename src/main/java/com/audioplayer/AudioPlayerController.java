@@ -9,6 +9,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -24,13 +26,40 @@ public class AudioPlayerController implements Initializable {
     private TextArea textArea;
 
     @FXML
+    private TextArea statusTextArea;
+
+    @FXML
     private Slider pitchSlider;
 
     @FXML
-    private Text sliderValue;
+    private Text pitchSliderValue;
+
+    @FXML
+    private Slider volumeSlider;
+
+    @FXML
+    private Text volumeSliderValue;
+
+    @FXML
+    private Slider panSlider;
+
+    @FXML
+    private Text panSliderValue;
+
+    @FXML
+    private Slider timelineSlider;
+
+    @FXML
+    private Text currentTime;
+
+    @FXML
+    private Text totalTime;
 
     @FXML
     private TextField tempo;
+
+    @FXML
+    private Line crosshair;
 
     @FXML
     private LineChart<Number, Number> lineChart1;
@@ -38,9 +67,40 @@ public class AudioPlayerController implements Initializable {
     @FXML
     private LineChart<Number, Number> lineChart2;
 
+    @FXML
+    private Circle reverseIndicatorOn;
+
+    @FXML
+    private Circle reverseIndicatorOff;
+
+    @FXML
+    private Circle monoIndicatorOn;
+
+    @FXML
+    private Circle monoIndicatorOff;
+
+    @FXML
+    private Circle invertIndicatorOn;
+
+    @FXML
+    private Circle invertIndicatorOff;
+
+    @FXML
+    private Circle swapIndicatorOn;
+
+    @FXML
+    private Circle swapIndicatorOff;
+
     private File file;
-    private File fileToSave;
+    private String currentFileName;
     private Playback playback;
+
+    private boolean leftChannelToggle = true;
+    private boolean rightChannelToggle = true;
+
+    public boolean timelineSelected;
+
+    private float duration;
 
     @FXML
     private void onSelectFileClick() {
@@ -51,9 +111,7 @@ public class AudioPlayerController implements Initializable {
             return;
         }
 
-        fileToSave = file;
-
-        WavParser parser = new WavParser(file);
+        WavParser parser = new WavParser(this, file);
         WavData wavData = parser.read();
 
         if (wavData != null) {
@@ -61,49 +119,16 @@ public class AudioPlayerController implements Initializable {
                 playback.reset();
             }
 
-            playback = new Playback(wavData);
+            playback = new Playback(this, wavData);
             displayFileAttributes(wavData);
+            setChartYBounds(wavData);
             populateChart(wavData);
-        }
-        else {
-            textArea.setText("Invalid wav file");
-        }
-    }
+            resetUI();
 
-    @FXML
-    private void onPlayPauseClick() {
-        if (playback != null) {
-            playback.transposePitch((int) pitchSlider.getValue());
-
-            Thread taskThread = new Thread(() -> playback.playPause());
-            taskThread.start();
-        }
-    }
-
-    @FXML
-    private void onResetClick() {
-        if (playback != null) {
-            playback.reset();
-        }
-    }
-
-    @FXML
-    private void onReverseClick() {
-        if (playback != null) {
-            playback.reverse();
-        }
-    }
-
-    @FXML
-    private void onBeatSwapClick() {
-        if (tempo.getText().length() > 3) {
-            tempo.setText("1000");
-        }
-
-        if (playback != null) {
-            if (!Objects.equals(tempo.getText(), "")) {
-                playback.beatSwap(Integer.parseInt(tempo.getText()));
-            }
+            currentFileName = file.getName();
+            duration = wavData.duration;
+            totalTime.setText(convertDurationToReadableTime(duration));
+            timelineSlider.setMax(playback.getNumFrames());
         }
     }
 
@@ -113,9 +138,8 @@ public class AudioPlayerController implements Initializable {
             return;
         }
 
-        String oldName = fileToSave.getName();
-        String newName = new StringBuffer(oldName)
-                .insert(oldName.length() - 4, " Copy").toString();
+        String newName = new StringBuffer(currentFileName)
+                .insert(currentFileName.length() - 4, " Copy").toString();
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialFileName(newName);
@@ -131,33 +155,235 @@ public class AudioPlayerController implements Initializable {
     }
 
     @FXML
-    private void onLeftChannelClick() {
+    private void onPlayPauseClick() {
         if (playback != null) {
-            playback.setChannel(0);
+            playback.transposePitch((int) pitchSlider.getValue());
+
+            Thread taskThread = new Thread(() -> playback.playPause());
+            taskThread.setPriority(10); // no idea
+            taskThread.start();
         }
     }
 
     @FXML
-    private void onRightChannelClick() {
+    private void onInfoClick() {
+        System.out.println("Show file info");
+        //TODO new window popout
+    }
+
+    @FXML
+    private void onResetClick() {
         if (playback != null) {
-            playback.setChannel(1);
+            playback.reset();
+        }
+    }
+
+    @FXML
+    private void onReverseClick() {
+        if (playback != null) {
+            playback.reverse();
+
+            double temp = reverseIndicatorOff.getOpacity();
+            reverseIndicatorOff.setOpacity(reverseIndicatorOn.getOpacity());
+            reverseIndicatorOn.setOpacity(temp);
+
+            //lineChart1.setScaleX(lineChart1.getScaleX() * -1);
+            //lineChart2.setScaleX(lineChart2.getScaleX() * -1);
+            populateChart(playback.getWavData()); // or flip charts
+        }
+    }
+
+    @FXML
+    private void onInvertClick() {
+        if (playback != null) {
+
+            if (playback.invertChannels()) {
+                double temp = invertIndicatorOff.getOpacity();
+                invertIndicatorOff.setOpacity(invertIndicatorOn.getOpacity());
+                invertIndicatorOn.setOpacity(temp);
+
+                populateChart(playback.getWavData()); // or swap charts
+            }
+            else {
+                updateStatusText("Cannot invert mono audio");
+            }
         }
     }
 
     @FXML
     private void onMonoClick() {
         if (playback != null) {
-            WavData wavData = playback.getWavData();
-            float[][] samples = WavParser.getSamples(wavData);
+            if (playback.setMono()) {
+                double temp = monoIndicatorOff.getOpacity();
+                monoIndicatorOff.setOpacity(monoIndicatorOn.getOpacity());
+                monoIndicatorOn.setOpacity(temp);
+            }
+            else {
+                updateStatusText("File already in mono");
+            }
         }
-        // sum samples then divide by num channels
-        // convert samples back to data
+    }
+
+    @FXML
+    private void onBeatSwapClick() {
+        if (tempo.getText().length() > 3) {
+            tempo.setText("1000");
+        }
+
+        if (playback != null) {
+            if (!Objects.equals(tempo.getText(), "")) {
+                playback.beatSwap(Integer.parseInt(tempo.getText()));
+
+                double temp = swapIndicatorOff.getOpacity();
+                swapIndicatorOff.setOpacity(swapIndicatorOn.getOpacity());
+                swapIndicatorOn.setOpacity(temp);
+
+                populateChart(playback.getWavData());
+            }
+        }
+    }
+
+    @FXML
+    private void onLeftChannelClick() {
+        if (playback != null) {
+            if (leftChannelToggle) {
+                playback.setPan(1f);
+                lineChart2.setOpacity(1d);
+                lineChart1.setOpacity(0.5d);
+                rightChannelToggle = true;
+            }
+            else {
+                playback.setPan(0f);
+                lineChart1.setOpacity(1d);
+            }
+
+            leftChannelToggle = !leftChannelToggle;
+        }
+    }
+
+    @FXML
+    private void onRightChannelClick() {
+        if (playback != null) {
+            if (rightChannelToggle) {
+                playback.setPan(-1f);
+                lineChart1.setOpacity(1d);
+                lineChart2.setOpacity(0.5d);
+                leftChannelToggle = true;
+            }
+            else {
+                playback.setPan(0f);
+                lineChart2.setOpacity(1d);
+            }
+
+            rightChannelToggle = !rightChannelToggle;
+        }
+    }
+
+    @FXML
+    private void onTimelineSliderPressed() {
+        timelineSelected = true;
+    }
+
+    @FXML
+    private void onTimelineSliderReleased() {
+        if (playback != null) {
+            int frame = (int) timelineSlider.getValue();
+            Thread taskThread = new Thread(() -> playback.skipTo(frame));
+            taskThread.start();
+        }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        updateTimeline();
         updateSliderValue();
         restrictTempoValueToNumbers();
+    }
+
+    private void updateTimeline() {
+        Thread taskThread = new Thread(() -> {
+            while (true) { // while (end condition) for closing program correctly ?
+                if (playback != null) {
+                    Platform.runLater(() -> {
+                        if (!timelineSelected) {
+                            timelineSlider.setValue(playback.getFrameOffset());
+                        }
+
+                        float ratioSlider = (float) timelineSlider.getValue() / playback.getNumFrames();
+
+                        float currentSecond = duration * ratioSlider;
+                        currentTime.setText(convertDurationToReadableTime(currentSecond));
+
+                        final int startX = -47;
+                        final int endX = 1200;
+                        float position = (ratioSlider * (endX - startX)) + startX;
+                        crosshair.setStartX(position);
+                        crosshair.setEndX(position);
+                    });
+                }
+
+                try {
+                    Thread.sleep(10);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        taskThread.start();
+    }
+
+    private void updateSliderValue() {
+        pitchSlider.valueProperty().addListener((_, _, new_val) -> {
+            pitchSlider.setValue(new_val.intValue());
+
+            if (pitchSlider.getValue() > 0) {
+                pitchSliderValue.setText(STR."+\{pitchSlider.getValue()} st");
+            }
+            else {
+                pitchSliderValue.setText(STR."\{pitchSlider.getValue()} st");
+            }
+        });
+
+        volumeSlider.valueProperty().addListener((_, _, new_val) -> {
+            volumeSlider.setValue(new_val.intValue());
+
+            if (volumeSlider.getValue() > 0) {
+                volumeSliderValue.setText(STR."+\{(int) volumeSlider.getValue()} dB");
+            }
+            else {
+                volumeSliderValue.setText(STR."\{(int) volumeSlider.getValue()} dB");
+            }
+
+            if (playback != null) {
+                playback.setGain((float) volumeSlider.getValue());
+            }
+        });
+
+        panSlider.valueProperty().addListener((_, _, _) -> {
+            float rounded = Math.round(panSlider.getValue() * 10) / 10f;
+            panSlider.setValue(rounded);
+
+            if (panSlider.getValue() > 0) {
+                panSliderValue.setText(STR."+\{rounded}");
+            }
+            else {
+                panSliderValue.setText(String.valueOf(rounded));
+            }
+
+            if (playback != null) {
+                playback.setPan((float) panSlider.getValue());
+            }
+        });
+    }
+
+    private void restrictTempoValueToNumbers() {
+        tempo.textProperty().addListener((_, _, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                tempo.setText(newValue.replaceAll("\\D", ""));
+            }
+        });
     }
 
     private void displayFileAttributes(WavData wavData) {
@@ -166,7 +392,7 @@ public class AudioPlayerController implements Initializable {
 
         textArea.appendText(STR."\n\{file.getPath()}");
 
-        String duration = String.format("%02d:%02d", ((int) wavData.duration % 3600) / 60, (int) wavData.duration % 60);
+        String duration = convertDurationToReadableTime(wavData.duration);
         textArea.appendText(STR."\nDuration: \{duration}");
 
         textArea.appendText(STR."\n\{wavData.format.sampleRate} Hz");
@@ -189,52 +415,62 @@ public class AudioPlayerController implements Initializable {
         return String.format("%.1f %cB", bytes / 1000.0, iterator.current());
     }
 
-    private void updateSliderValue() {
-        pitchSlider.valueProperty().addListener((_, _, new_val) -> {
-            pitchSlider.setValue(new_val.intValue());
-
-            if (pitchSlider.getValue() > 0) {
-                sliderValue.setText(STR."+\{pitchSlider.getValue()} st");
-            }
-            else {
-                sliderValue.setText(STR."\{pitchSlider.getValue()} st");
-            }
-        });
+    private String convertDurationToReadableTime(float duration) {
+        int roundedDuration = Math.round(duration);
+        return String.format("%02d:%02d", (roundedDuration % 3600) / 60, roundedDuration % 60);
     }
 
-    private void restrictTempoValueToNumbers() {
-        tempo.textProperty().addListener((_, _, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                tempo.setText(newValue.replaceAll("\\D", ""));
-            }
-        });
+    private void resetUI() {
+        reverseIndicatorOn.setOpacity(0.4f);
+        reverseIndicatorOff.setOpacity(1f);
+        monoIndicatorOn.setOpacity(0.4f);
+        monoIndicatorOff.setOpacity(1f);
+        invertIndicatorOn.setOpacity(0.4f);
+        invertIndicatorOff.setOpacity(1f);
+        swapIndicatorOn.setOpacity(0.4f);
+        swapIndicatorOff.setOpacity(1f);
+        lineChart1.setOpacity(1f);
+        lineChart2.setOpacity(1f);
+    }
+
+    public void updateStatusText(String text) {
+        statusTextArea.setText(text);
+    }
+
+    private void setChartYBounds(WavData wavData) {
+        NumberAxis yAxis1 = (NumberAxis) lineChart1.getYAxis();
+        NumberAxis yAxis2 = (NumberAxis) lineChart2.getYAxis();
+        yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+        yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+        yAxis1.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
+        yAxis2.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
     }
 
     public void populateChart(WavData wavData) {
-        float[][] samples = WavParser.getSamples(wavData);
+        float[][] samples = WavParser.getSamples(this, wavData);
 
-        NumberAxis yAxis1 = (NumberAxis) lineChart1.getYAxis();
+        // TODO optimise
+
+        int l = 0;
+        int r = l;
+        if (wavData.format.numChannels > 1)
+            r = 1;
+
         NumberAxis xAxis1 = (NumberAxis) lineChart1.getXAxis();
         NumberAxis xAxis2 = (NumberAxis) lineChart2.getXAxis();
-        NumberAxis yAxis2 = (NumberAxis) lineChart2.getYAxis();
-
-        yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
-        yAxis1.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1) - 1);
-        yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
-        yAxis2.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1) - 1);
-        xAxis1.setUpperBound(samples[0].length);
-        xAxis2.setUpperBound(samples[1].length);
+        xAxis1.setUpperBound(samples[l].length);
+        xAxis2.setUpperBound(samples[r].length);
 
         XYChart.Series<Number, Number> leftChannel = new XYChart.Series<>();
         XYChart.Series<Number, Number> rightChannel = new XYChart.Series<>();
 
         int n = 10_000;
-        int downSampleScale = samples[0].length / n;
+        int downSampleScale = samples[l].length / n;
 
-        for (int i = 0; i < samples[0].length; i+= downSampleScale) {
+        for (int i = 0; i < samples[l].length; i+= downSampleScale) {
             int x = i;
-            float yL = samples[0][i];
-            float yR = samples[1][i];
+            float yL = samples[l][i];
+            float yR = samples[r][i];
 
             Platform.runLater(() -> {
                 leftChannel.getData().add(new XYChart.Data<>(x, yL));

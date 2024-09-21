@@ -1,0 +1,47 @@
+#pane {
+    -fx-background-color: #2d2a2e;
+}
+
+.button {
+    -fx-background-color: #e3dcd8;
+}
+
+.text-area .content {
+    -fx-background-color: #e3dcd8;
+}
+
+.text-field {
+    -fx-background-color: #e3dcd8;
+}
+
+.chart-plot-background {
+    -fx-background-color: #e3dcd8;
+}
+
+.chart-series-line {
+    -fx-stroke: #0e287d;
+    -fx-stroke-width: 1px;
+    -fx-cursor: crosshair;
+}
+
+.axis {
+    -fx-stroke: #e3dcd8;
+    -fx-fill: #e3dcd8;
+    -fx-tick-label-fill: #e3dcd8;
+    -fx-tick-length: 5px;
+    -fx-minor-tick-length: 3px;
+}
+
+.slider .track {
+    -fx-background-color: #b3a79f;
+}
+
+.slider .thumb {
+    -fx-background-color: #e3dcd8;
+}
+
+#pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime {
+    -fx-fill: #e3dcd8;
+}
+
+

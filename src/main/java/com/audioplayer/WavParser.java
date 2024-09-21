@@ -9,9 +9,11 @@ import java.util.LinkedHashMap;
 public class WavParser {
     private final File file;
     private final WavData wavData;
+    private final AudioPlayerController controller;
 
-    public WavParser(File file) {
+    public WavParser(AudioPlayerController controller, File file) {
         this.file = file;
+        this.controller = controller;
         wavData = new WavData();
     }
 
@@ -41,7 +43,7 @@ public class WavParser {
             return wavData;
         }
         catch (IOException e) {
-            System.out.println("Invalid File");
+            controller.updateStatusText("Invalid File");
             return null;
         }
     }
@@ -64,12 +66,12 @@ public class WavParser {
             String format = new String(bytes, StandardCharsets.ISO_8859_1);
 
             if (!chunkID.equals("RIFF") || !format.equals("WAVE")) {
-                System.out.println("Invalid .wav file");
+                controller.updateStatusText("Invalid .wav file");
                 return null;
             }
 
             if (file.length() - 8 != chunkSize) {
-                System.out.println(STR."Invalid file size: \{file.length()}. Expected: \{chunkSize + 8}");
+                controller.updateStatusText(STR."Invalid file size: \{file.length()}. Expected: \{chunkSize + 8}");
                 return null;
             }
 
@@ -92,7 +94,7 @@ public class WavParser {
             return chunkLookup;
         }
         catch (IOException e) {
-            System.out.println("Invalid file");
+            controller.updateStatusText("Invalid file");
             return null;
         }
     }
@@ -133,7 +135,7 @@ public class WavParser {
         }
     }
 
-    public static float[][] getSamples(WavData wavData) {
+    public static float[][] getSamples(AudioPlayerController controller, WavData wavData) {
         int numSamplesPerChannel = wavData.data.length / wavData.format.blockAlign;
         float[][] samples = new float[wavData.format.numChannels][numSamplesPerChannel];
 
@@ -141,7 +143,7 @@ public class WavParser {
 
         int sampleBits = wavData.format.bitsPerSample;
         if (sampleBits != 8 && sampleBits != 16 && sampleBits != 32) {
-            System.out.println(STR."Unsupported bits per sample: \{sampleBits}");
+            controller.updateStatusText(STR."Unsupported bits per sample: \{sampleBits}");
             return samples;
         }
 

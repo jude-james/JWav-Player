@@ -3,27 +3,24 @@ package com.audioplayer;
 import javax.sound.sampled.*;
 
 public class Playback {
-    private WavData wavData;
-
-    private byte[] currentData;
-    private byte[] reverseData;
-    private byte[][] dataPerChannel;
-
-    private float currentSampleRate;
-
-    private boolean paused = true;
-    private boolean reversed = false;
-
+    private final WavData wavData;
+    private final AudioPlayerController controller;
     private SourceDataLine line;
 
-    public Playback(WavData wavData) {
+    private byte[] currentData;
+    private float currentSampleRate;
+    private boolean paused = true;
+    private int offset;
+
+    private float pan;
+    private float gain;
+
+    public Playback(AudioPlayerController controller, WavData wavData) {
+        this.controller = controller;
         this.wavData = wavData;
 
         currentData = wavData.data;
         currentSampleRate = wavData.format.sampleRate;
-
-        reverseFrameOrder();
-        splitDataPerChannel();
     }
 
     private void createLine() {
@@ -34,66 +31,148 @@ public class Playback {
             line = AudioSystem.getSourceDataLine(audioFormat);
             line.open(audioFormat);
             line.start();
+
+            setLineControls();
         }
         catch (LineUnavailableException e) {
             throw new RuntimeException(e);
         }
         catch (IllegalArgumentException e) {
-            System.out.println("Java does not support the specified audio format");
+            controller.updateStatusText("Java does not support the specified audio format");
         }
     }
 
-    private void reverseFrameOrder() {
-        int frameSize = wavData.format.blockAlign;
-        reverseData = new byte[wavData.data.length];
+    private void setLineControls() {
+        if (line.isControlSupported(FloatControl.Type.PAN)) {
+            FloatControl panControl = (FloatControl) line.getControl(FloatControl.Type.PAN);
+            panControl.setValue(pan);
+        }
 
-        for (int i = 0; i < wavData.data.length; i += frameSize) {
-            for (int j = 0; j < frameSize; j++) {
-                reverseData[i+j] = wavData.data[wavData.data.length - i - (frameSize-j)];
-            }
+        if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            FloatControl gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControl.setValue(gain); // gain range -80 to 6 dB
         }
     }
 
-    private void splitDataPerChannel() {
-        // do reverse data per channel
-        dataPerChannel = new byte[wavData.format.numChannels][wavData.data.length];
-
-        int frameSize = wavData.format.blockAlign;
-        int bytesPerSample = wavData.format.bitsPerSample / 8;
-
-        for (int n = 0; n < wavData.format.numChannels; n++) {
-            for (int i = 0; i < wavData.data.length; i += frameSize) {
-                for (int k = 0; k < bytesPerSample; k++) {
-                    dataPerChannel[n][i+k+(n*bytesPerSample)] = wavData.data[i+k+(n*bytesPerSample)];
-                }
-            }
+    public void playPause() {
+        if (paused) {
+            play();
+        }
+        else {
+            pause();
         }
     }
 
-    public void setChannel(int channel) {
-        if (!paused) {
+    private void play() {
+        createLine();
+        controller.timelineSelected = false; // ugly solution to timeline jumping for a fraction of a second
+
+        if (line == null) {
             return;
         }
 
-        if (channel <= wavData.format.numChannels) {
-            /*
-            for (int i = 0; i < currentData.length; i++) {
-                currentData[i] = dataPerChannel[channel][i];
-            }
-             */
-            currentData = dataPerChannel[channel];
+        paused = false;
+
+        line.write(currentData, offset, currentData.length - offset);
+
+        if (!paused) {
+            line.drain();
+            reset();
         }
+    }
+
+    private void pause() {
+        if (line == null) {
+            return;
+        }
+
+        paused = true;
+
+        int framePosition = line.getFramePosition();
+        line.close();
+
+        int frameSize = wavData.format.blockAlign;
+        int dataPosition = framePosition * frameSize;
+        offset += dataPosition;
+    }
+
+    public void reset() {
+        if (line == null) {
+            return;
+        }
+
+        paused = true;
+
+        line.close();
+        offset = 0;
+    }
+
+    public void skipTo(int frame) {
+        // caller must start a new thread for this to work, not the best approach
+        int bytes = frame * wavData.format.blockAlign;
+
+        if (paused) {
+            offset = bytes;
+        }
+        else {
+            pause();
+            offset = bytes;
+            play();
+        }
+    }
+
+    public int getFrameOffset() {
+        if (line == null) {
+            return 0;
+        }
+
+        return (offset / wavData.format.blockAlign) + line.getFramePosition();
+    }
+
+    public int getNumFrames() {
+        return currentData.length / wavData.format.blockAlign;
+    }
+
+    public void reverse() {
+        int frameSize = wavData.format.blockAlign;
+
+        for (int i = 0; i < currentData.length / 2; i += frameSize) {
+            for (int j = 0; j < frameSize; j++) {
+                byte temp = currentData[i+j];
+                currentData[i+j] = currentData[currentData.length - i - (frameSize-j)];
+                currentData[currentData.length - i - (frameSize-j)] = temp;
+            }
+        }
+    }
+
+    public boolean invertChannels() {
+        int frameSize = wavData.format.blockAlign;
+        int bytesPerSample = wavData.format.bitsPerSample / 8;
+
+        if (wavData.format.numChannels == 2) {
+            for (int i = 0; i < wavData.data.length; i += frameSize) {
+                for (int j = 0; j < bytesPerSample; j++) {
+                    byte temp = currentData[i + j];
+                    currentData[i + j] = currentData[i + j + bytesPerSample];
+                    currentData[i + j + bytesPerSample] = temp;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public void beatSwap(int tempo) {
         /*
-            The given sample rate is actually num samples per second per channel
-            so samples per minute per channel = sample rate * 60
+            The given sample rate is num samples per second per channel
+            => samples per minute per channel = sample rate * 60
             => samples per minute = sample rate * 60 * num channels
             => frames per minute = samples per minute / num channels
             num channels cancel out
             => frames per minute = samples per minute = sample rate * 60
-            frames per minute = sample rate * 60 !
+            frames per minute = sample rate * 60
          */
 
         float framesPerMinute = wavData.format.sampleRate * 60;
@@ -129,81 +208,34 @@ public class Playback {
         }
     }
 
+    public boolean setMono() {
+        if (wavData.format.numChannels > 1) {
+            System.out.println("Converting to mono...");
+
+            //TODO sum l + r, then div by 2
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void setPan(float value) {
+        if (line != null) {
+            pan = value;
+            setLineControls();
+        }
+    }
+
+    public void setGain(float value) {
+        if (line != null) {
+            gain = value;
+            setLineControls();
+        }
+    }
+
     public void transposePitch(int semiTones) {
         currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d));
-    }
-
-    public void playPause() {
-        if (paused) {
-            paused = false;
-            play();
-        }
-        else {
-            paused = true;
-            pause();
-        }
-    }
-
-    private void play() {
-        createLine();
-
-        if (line == null) {
-            return;
-        }
-
-        line.write(currentData, 0, currentData.length);
-
-        line.drain();
-        reset();
-    }
-
-    private void pause() {
-        if (line == null) {
-            return;
-        }
-
-        int framePosition = line.getFramePosition();
-        int frameSize = wavData.format.blockAlign;
-        int dataPosition = framePosition * frameSize;
-
-        line.close();
-
-        // Resizes data array to the current frame position, so it can be resumed
-        byte[] temp = currentData;
-        currentData = new byte[currentData.length - dataPosition];
-        System.arraycopy(temp, dataPosition, currentData, 0, currentData.length);
-    }
-
-    public void reset() {
-        if (line == null) {
-            return;
-        }
-
-        paused = true;
-
-        line.close();
-
-        if (reversed) {
-            currentData = reverseData;
-        }
-        else {
-            currentData = wavData.data;
-        }
-    }
-
-    public void reverse() {
-        if (!paused) {
-            return;
-        }
-
-        if (reversed) {
-            currentData = wavData.data;
-            reversed = false;
-        }
-        else {
-            currentData = reverseData;
-            reversed = true;
-        }
     }
 
     public WavData getWavData() {
@@ -218,7 +250,11 @@ public class Playback {
         WavData currentWavData = new WavData();
         currentWavData.format = currentFormat;
         currentWavData.signed = wavData.signed;
+
+        //TODO take pan and gain values to save
+        // use linear scale calculation shown on documentation for volume
         currentWavData.data = currentData;
+
         currentWavData.duration = wavData.duration;
 
         return currentWavData;
