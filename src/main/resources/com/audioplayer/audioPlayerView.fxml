@@ -62,6 +62,14 @@
             <Point3D />
          </rotationAxis>
       </LineChart>
+      <LineChart fx:id="lineChart2" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="343.0" legendVisible="false" prefHeight="200.0" prefWidth="1280.0" verticalGridLinesVisible="false">
+         <xAxis>
+            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+         </xAxis>
+         <yAxis>
+            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="LEFT" tickLabelsVisible="false" tickMarkVisible="false" upperBound="0.0" />
+         </yAxis>
+      </LineChart>
       <Button layoutX="1165.0" layoutY="623.0" mnemonicParsing="false" onAction="#onBeatSwapClick" prefHeight="50.0" prefWidth="60.0" text="SWAP 2&amp;4" textAlignment="CENTER" wrapText="true">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
@@ -72,12 +80,12 @@
             <Font name="SF Mono Regular" size="15.0" />
          </font>
       </TextField>
-      <Button layoutX="1266.0" layoutY="185.0" mnemonicParsing="false" onAction="#onLeftChannelClick" prefHeight="150.0" prefWidth="25.0" text="L">
+      <Button fx:id="leftChannel" layoutX="1266.0" layoutY="185.0" mnemonicParsing="false" onAction="#onLeftChannelClick" prefHeight="150.0" prefWidth="25.0" text="L">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <Button layoutX="1265.0" layoutY="367.0" mnemonicParsing="false" onAction="#onRightChannelClick" prefHeight="150.0" prefWidth="25.0" text="R">
+      <Button fx:id="rightChannel" layoutX="1265.0" layoutY="367.0" mnemonicParsing="false" onAction="#onRightChannelClick" prefHeight="150.0" prefWidth="25.0" text="R">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font>
@@ -87,14 +95,6 @@
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <LineChart fx:id="lineChart2" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="343.0" legendVisible="false" prefHeight="200.0" prefWidth="1280.0" verticalGridLinesVisible="false">
-         <xAxis>
-            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
-         </xAxis>
-         <yAxis>
-            <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="LEFT" tickLabelsVisible="false" tickMarkVisible="false" upperBound="0.0" />
-         </yAxis>
-      </LineChart>
       <Button layoutX="1140.0" layoutY="14.0" mnemonicParsing="false" onAction="#onInfoClick" prefHeight="110.0" prefWidth="150.0" text="Info">
          <font>
             <Font name="SF Mono Bold" size="13.0" />

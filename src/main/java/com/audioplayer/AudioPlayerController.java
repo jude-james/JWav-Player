@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -91,6 +92,12 @@ public class AudioPlayerController implements Initializable {
     @FXML
     private Circle swapIndicatorOff;
 
+    @FXML
+    private Button leftChannel;
+
+    @FXML
+    private Button rightChannel;
+
     private File file;
     private String currentFileName;
     private Playback playback;
@@ -160,7 +167,8 @@ public class AudioPlayerController implements Initializable {
             playback.transposePitch((int) pitchSlider.getValue());
 
             Thread taskThread = new Thread(() -> playback.playPause());
-            taskThread.setPriority(10); // no idea
+            taskThread.setPriority(10);
+            taskThread.setDaemon(true); // unsafe?
             taskThread.start();
         }
     }
@@ -196,7 +204,6 @@ public class AudioPlayerController implements Initializable {
     @FXML
     private void onInvertClick() {
         if (playback != null) {
-
             if (playback.invertChannels()) {
                 double temp = invertIndicatorOff.getOpacity();
                 invertIndicatorOff.setOpacity(invertIndicatorOn.getOpacity());
@@ -205,7 +212,7 @@ public class AudioPlayerController implements Initializable {
                 populateChart(playback.getWavData()); // or swap charts
             }
             else {
-                updateStatusText("Cannot invert mono audio");
+                updateStatusText("Cannot invert non stereo");
             }
         }
     }
@@ -249,12 +256,15 @@ public class AudioPlayerController implements Initializable {
             if (leftChannelToggle) {
                 playback.setPan(1f);
                 lineChart2.setOpacity(1d);
+                rightChannel.setOpacity(1d);
                 lineChart1.setOpacity(0.5d);
+                leftChannel.setOpacity(0.5d);
                 rightChannelToggle = true;
             }
             else {
                 playback.setPan(0f);
                 lineChart1.setOpacity(1d);
+                leftChannel.setOpacity(1d);
             }
 
             leftChannelToggle = !leftChannelToggle;
@@ -267,12 +277,15 @@ public class AudioPlayerController implements Initializable {
             if (rightChannelToggle) {
                 playback.setPan(-1f);
                 lineChart1.setOpacity(1d);
+                leftChannel.setOpacity(1d);
                 lineChart2.setOpacity(0.5d);
+                rightChannel.setOpacity(0.5d);
                 leftChannelToggle = true;
             }
             else {
                 playback.setPan(0f);
                 lineChart2.setOpacity(1d);
+                rightChannel.setOpacity(1d);
             }
 
             rightChannelToggle = !rightChannelToggle;
@@ -289,6 +302,7 @@ public class AudioPlayerController implements Initializable {
         if (playback != null) {
             int frame = (int) timelineSlider.getValue();
             Thread taskThread = new Thread(() -> playback.skipTo(frame));
+            taskThread.setDaemon(true); // unsafe?
             taskThread.start();
         }
     }
@@ -301,8 +315,12 @@ public class AudioPlayerController implements Initializable {
     }
 
     private void updateTimeline() {
+        final int refreshRate = 10;
+        final int startX = -47;
+        final int endX = 1200;
+
         Thread taskThread = new Thread(() -> {
-            while (true) { // while (end condition) for closing program correctly ?
+            while (true) {
                 if (playback != null) {
                     Platform.runLater(() -> {
                         if (!timelineSelected) {
@@ -314,8 +332,6 @@ public class AudioPlayerController implements Initializable {
                         float currentSecond = duration * ratioSlider;
                         currentTime.setText(convertDurationToReadableTime(currentSecond));
 
-                        final int startX = -47;
-                        final int endX = 1200;
                         float position = (ratioSlider * (endX - startX)) + startX;
                         crosshair.setStartX(position);
                         crosshair.setEndX(position);
@@ -323,7 +339,7 @@ public class AudioPlayerController implements Initializable {
                 }
 
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(refreshRate);
                 }
                 catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -331,6 +347,7 @@ public class AudioPlayerController implements Initializable {
             }
         });
 
+        taskThread.setDaemon(true);
         taskThread.start();
     }
 
@@ -431,6 +448,8 @@ public class AudioPlayerController implements Initializable {
         swapIndicatorOff.setOpacity(1f);
         lineChart1.setOpacity(1f);
         lineChart2.setOpacity(1f);
+        leftChannel.setOpacity(1f);
+        rightChannel.setOpacity(1f);
     }
 
     public void updateStatusText(String text) {

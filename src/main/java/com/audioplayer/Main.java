@@ -14,7 +14,7 @@ public class Main extends Application {
         Scene scene = new Scene(fxmlLoader.load());
 
         stage.setScene(scene);
-        stage.setTitle("Audio Player");
+        stage.setTitle("Advanced Audio Player");
         stage.setResizable(false);
 
         stage.show();
