@@ -225,9 +225,6 @@ public class AudioPlayerController implements Initializable {
                 monoIndicatorOff.setOpacity(monoIndicatorOn.getOpacity());
                 monoIndicatorOn.setOpacity(temp);
             }
-            else {
-                updateStatusText("File already in mono");
-            }
         }
     }
 

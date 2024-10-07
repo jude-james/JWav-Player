@@ -9,11 +9,15 @@ public class Playback {
 
     private byte[] currentData;
     private float currentSampleRate;
+    private int currentNumChannels; // test
     private boolean paused = true;
     private int offset;
 
     private float pan;
     private float gain;
+
+    private boolean monoOn = false;
+    private int monoSampleRateAdjustment = 1;
 
     public Playback(AudioPlayerController controller, WavData wavData) {
         this.controller = controller;
@@ -21,11 +25,12 @@ public class Playback {
 
         currentData = wavData.data;
         currentSampleRate = wavData.format.sampleRate;
+        currentNumChannels = wavData.format.numChannels;
     }
 
     private void createLine() {
         AudioFormat audioFormat = new AudioFormat(currentSampleRate,
-                wavData.format.bitsPerSample, wavData.format.numChannels, wavData.signed, wavData.endianness);
+                wavData.format.bitsPerSample, currentNumChannels, wavData.signed, wavData.endianness);
 
         try {
             line = AudioSystem.getSourceDataLine(audioFormat);
@@ -88,7 +93,7 @@ public class Playback {
 
         paused = true;
 
-        int framePosition = line.getFramePosition();
+        int framePosition = line.getFramePosition() / monoSampleRateAdjustment;
         line.close();
 
         int frameSize = wavData.format.blockAlign;
@@ -126,7 +131,7 @@ public class Playback {
             return 0;
         }
 
-        return (offset / wavData.format.blockAlign) + line.getFramePosition();
+        return (offset / wavData.format.blockAlign) + line.getFramePosition() / monoSampleRateAdjustment;
     }
 
     public int getNumFrames() {
@@ -209,10 +214,17 @@ public class Playback {
     }
 
     public boolean setMono() {
-        if (wavData.format.numChannels > 1) {
-            System.out.println("Converting to mono...");
+        if (wavData.format.numChannels > 1 && paused) {
+            if (!monoOn) {
+                currentNumChannels = 1;
+                monoSampleRateAdjustment = 2;
+            }
+            else {
+                currentNumChannels = wavData.format.numChannels;
+                monoSampleRateAdjustment = 1;
+            }
 
-            //TODO sum l + r, then div by 2
+            monoOn = !monoOn;
 
             return true;
         }
@@ -235,16 +247,16 @@ public class Playback {
     }
 
     public void transposePitch(int semiTones) {
-        currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d));
+        currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d) * monoSampleRateAdjustment);
     }
 
     public WavData getWavData() {
         WavFormat currentFormat = new WavFormat();
         currentFormat.audioFormat = wavData.format.audioFormat;
-        currentFormat.numChannels = wavData.format.numChannels;
+        currentFormat.numChannels = currentNumChannels;
         currentFormat.sampleRate = currentSampleRate;
         currentFormat.byteRate =  wavData.format.byteRate;
-        currentFormat.blockAlign =  wavData.format.blockAlign;
+        currentFormat.blockAlign =  currentNumChannels * wavData.format.bitsPerSample / 8; // can't use existing blockAlign in case num channels changed
         currentFormat.bitsPerSample =  wavData.format.bitsPerSample;
 
         WavData currentWavData = new WavData();

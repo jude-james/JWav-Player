@@ -27,6 +27,11 @@ public class WavParser {
                 return null;
             }
 
+            if (chunkLookup.get("fmt ") == null || chunkLookup.get("data") == null) {
+                controller.updateStatusText("Perverse wav file. Possible odd length intermediate chunk");
+                return null;
+            }
+
             long fmtChunkOffset = chunkLookup.get("fmt ");
             long dataChunkOffset = chunkLookup.get("data");
 
@@ -128,6 +133,7 @@ public class WavParser {
             wavData.data = data;
 
             int numSamplesPerChannel = numBytesData / wavData.format.blockAlign;
+            System.out.println(numSamplesPerChannel);
             wavData.duration = numSamplesPerChannel / wavData.format.sampleRate;
         }
         catch (IOException e) {
