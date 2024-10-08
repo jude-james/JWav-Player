@@ -105,7 +105,7 @@ public class AudioPlayerController implements Initializable {
     private boolean leftChannelToggle = true;
     private boolean rightChannelToggle = true;
 
-    public boolean timelineSelected;
+    public boolean canUpdateTimeline = true;
 
     private float duration;
 
@@ -291,7 +291,7 @@ public class AudioPlayerController implements Initializable {
 
     @FXML
     private void onTimelineSliderPressed() {
-        timelineSelected = true;
+        canUpdateTimeline = false;
     }
 
     @FXML
@@ -320,7 +320,7 @@ public class AudioPlayerController implements Initializable {
             while (true) {
                 if (playback != null) {
                     Platform.runLater(() -> {
-                        if (!timelineSelected) {
+                        if (canUpdateTimeline) {
                             timelineSlider.setValue(playback.getFrameOffset());
                         }
 

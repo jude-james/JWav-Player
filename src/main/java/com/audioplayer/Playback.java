@@ -9,7 +9,7 @@ public class Playback {
 
     private byte[] currentData;
     private float currentSampleRate;
-    private int currentNumChannels; // test
+    private int currentNumChannels;
     private boolean paused = true;
     private int offset;
 
@@ -70,12 +70,12 @@ public class Playback {
 
     private void play() {
         createLine();
-        controller.timelineSelected = false; // ugly solution to timeline jumping for a fraction of a second
 
         if (line == null) {
             return;
         }
 
+        controller.canUpdateTimeline = true;
         paused = false;
 
         line.write(currentData, offset, currentData.length - offset);
@@ -91,6 +91,7 @@ public class Playback {
             return;
         }
 
+        controller.canUpdateTimeline = false;
         paused = true;
 
         int framePosition = line.getFramePosition() / monoSampleRateAdjustment;
@@ -106,6 +107,7 @@ public class Playback {
             return;
         }
 
+        controller.canUpdateTimeline = true;
         paused = true;
 
         line.close();
