@@ -133,7 +133,6 @@ public class WavParser {
             wavData.data = data;
 
             int numSamplesPerChannel = numBytesData / wavData.format.blockAlign;
-            System.out.println(numSamplesPerChannel);
             wavData.duration = numSamplesPerChannel / wavData.format.sampleRate;
         }
         catch (IOException e) {

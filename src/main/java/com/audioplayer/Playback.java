@@ -26,6 +26,8 @@ public class Playback {
         currentData = wavData.data;
         currentSampleRate = wavData.format.sampleRate;
         currentNumChannels = wavData.format.numChannels;
+
+        createLine(); //TODO test if this causes errors
     }
 
     private void createLine() {
@@ -49,7 +51,7 @@ public class Playback {
 
     private void setLineControls() {
         if (line.isControlSupported(FloatControl.Type.PAN)) {
-            FloatControl panControl = (FloatControl) line.getControl(FloatControl.Type.PAN);
+            FloatControl panControl = (FloatControl) line.getControl(FloatControl.Type.PAN); //TODO move to start to see if performance is better
             panControl.setValue(pan);
         }
 
@@ -266,7 +268,7 @@ public class Playback {
         currentWavData.signed = wavData.signed;
 
         //TODO take pan and gain values to save
-        // use linear scale calculation shown on documentation for volume
+        // use linear scale calculation shown on documentation for volume and handle clipping somehow
         currentWavData.data = currentData;
 
         currentWavData.duration = wavData.duration;

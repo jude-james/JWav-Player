@@ -132,6 +132,9 @@ public class AudioPlayerController implements Initializable {
             populateChart(wavData);
             resetUI();
 
+            playback.setGain((float) volumeSlider.getValue());
+            playback.setPan((float) panSlider.getValue());
+
             currentFileName = file.getName();
             duration = wavData.duration;
             totalTime.setText(convertDurationToReadableTime(duration));
