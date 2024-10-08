@@ -459,10 +459,20 @@ public class AudioPlayerController implements Initializable {
     private void setChartYBounds(WavData wavData) {
         NumberAxis yAxis1 = (NumberAxis) lineChart1.getYAxis();
         NumberAxis yAxis2 = (NumberAxis) lineChart2.getYAxis();
-        yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
-        yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
-        yAxis1.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
-        yAxis2.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
+
+        if (wavData.signed) {
+            yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+            yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
+            yAxis1.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
+            yAxis2.setLowerBound(Math.pow(-2, wavData.format.bitsPerSample - 1));
+        }
+        else {
+            // Unsigned data only stored as positive integers with min value 0
+            yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample) - 1);
+            yAxis2.setUpperBound(Math.pow(2, wavData.format.bitsPerSample) - 1);
+            yAxis1.setLowerBound(0);
+            yAxis2.setLowerBound(0);
+        }
     }
 
     public void populateChart(WavData wavData) {
