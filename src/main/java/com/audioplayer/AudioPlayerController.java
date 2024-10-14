@@ -310,7 +310,7 @@ public class AudioPlayerController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         updateTimeline();
-        updateSliderValue();
+        updateSliderValues();
         restrictTempoValueToNumbers();
     }
 
@@ -351,7 +351,7 @@ public class AudioPlayerController implements Initializable {
         taskThread.start();
     }
 
-    private void updateSliderValue() {
+    private void updateSliderValues() {
         pitchSlider.valueProperty().addListener((_, _, new_val) -> {
             pitchSlider.setValue(new_val.intValue());
 
@@ -392,6 +392,18 @@ public class AudioPlayerController implements Initializable {
             if (playback != null) {
                 playback.setPan((float) panSlider.getValue());
             }
+        });
+
+        timelineSlider.valueProperty().addListener((_, _, new_val) -> {
+            double percentage = 100 * new_val.doubleValue() / timelineSlider.getMax();
+            String style = String.format(
+                    "-track-color: linear-gradient(to right, " +
+                            "-fx-accent 0%%, " +
+                            "-fx-accent %1$.1f%%, " +
+                            "-default-track-color %1$.1f%%, " +
+                            "-default-track-color 100%%);",
+                    percentage);
+            timelineSlider.setStyle(style);
         });
     }
 

@@ -27,7 +27,7 @@ public class Playback {
         currentSampleRate = wavData.format.sampleRate;
         currentNumChannels = wavData.format.numChannels;
 
-        createLine(); //TODO test if this causes errors
+        createLine();
     }
 
     private void createLine() {
@@ -84,6 +84,7 @@ public class Playback {
 
         if (!paused) {
             line.drain();
+            // skipTo(0); // for looping
             reset();
         }
     }

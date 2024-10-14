@@ -146,7 +146,7 @@
             <Font name="SF Mono Bold" size="15.0" />
          </font>
       </Text>
-      <Text fx:id="panSliderValue" layoutX="763.0" layoutY="662.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0" textAlignment="CENTER" wrappingWidth="87.21630859375">
+      <Text fx:id="panSliderValue" layoutX="763.0" layoutY="662.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.0" textAlignment="CENTER" wrappingWidth="87.21630859375">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
          </font>

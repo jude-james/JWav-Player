@@ -40,6 +40,18 @@
     -fx-background-color: #e3dcd8;
 }
 
+#timelineSlider {
+    -default-track-color: #b3a79f;
+    -track-color: #b3a79f;
+    -fx-accent: black;
+}
+
+#timelineSlider .track {
+    -fx-background-color: #b3a79f,
+    linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
+    -track-color;
+}
+
 #pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime {
     -fx-fill: #e3dcd8;
 }
