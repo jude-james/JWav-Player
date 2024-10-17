@@ -179,6 +179,7 @@ public class AudioPlayerController implements Initializable {
     @FXML
     private void onInfoClick() {
         System.out.println("Show file info");
+
         //TODO new window popout
     }
 
@@ -238,7 +239,7 @@ public class AudioPlayerController implements Initializable {
         }
 
         if (playback != null) {
-            if (!Objects.equals(tempo.getText(), "")) {
+            if (!Objects.equals(tempo.getText(), "") && !Objects.equals(tempo.getText(), "0")) {
                 playback.beatSwap(Integer.parseInt(tempo.getText()));
 
                 double temp = swapIndicatorOff.getOpacity();
