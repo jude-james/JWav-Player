@@ -17,14 +17,24 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class AudioPlayerController implements Initializable {
     @FXML
     private TextArea textArea;
+
+    @FXML
+    private TextArea infoTextArea; // testing
 
     @FXML
     private TextArea statusTextArea;
@@ -128,6 +138,7 @@ public class AudioPlayerController implements Initializable {
 
             playback = new Playback(this, wavData);
             displayFileAttributes(wavData);
+            displayFileInfo(wavData);
             setChartYBounds(wavData);
             populateChart(wavData);
             resetUI();
@@ -178,9 +189,9 @@ public class AudioPlayerController implements Initializable {
 
     @FXML
     private void onInfoClick() {
-        System.out.println("Show file info");
-
-        //TODO new window popout
+        if (playback != null) {
+            infoTextArea.setVisible(!infoTextArea.isVisible());
+        }
     }
 
     @FXML
@@ -431,6 +442,51 @@ public class AudioPlayerController implements Initializable {
         textArea.appendText(STR."\n\{fileSize}");
     }
 
+    private void displayFileInfo(WavData wavData) {
+        infoTextArea.setText("Kind: Waveform audio");
+
+        String fileLengthBytes = new DecimalFormat("#,###").format(file.length());
+        infoTextArea.appendText(STR."\nSize: \{fileLengthBytes} bytes");
+
+        String duration = convertDurationToReadableTime(wavData.duration);
+        infoTextArea.appendText(STR."\nDuration: \{duration}");
+
+        infoTextArea.appendText(STR."\nSample rate: \{wavData.format.sampleRate} Hz");
+
+        String audioChannels;
+        if (wavData.format.numChannels == 1)
+            audioChannels = "Mono";
+        else if (wavData.format.numChannels == 2)
+            audioChannels = "Stereo";
+        else
+            audioChannels = Integer.toString(wavData.format.numChannels);
+        infoTextArea.appendText(STR."\nAudio channels: \{audioChannels}");
+
+        infoTextArea.appendText(STR."\nBits per sample: \{wavData.format.bitsPerSample}");
+
+        try {
+            BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+
+            infoTextArea.appendText("\n");
+            infoTextArea.appendText(STR."\nCreated: \{formatDateTime(attributes.creationTime())}");
+            infoTextArea.appendText(STR."\nLast accessed: \{formatDateTime(attributes.lastAccessTime())}");
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String formatDateTime(FileTime fileTime) {
+        final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        LocalDateTime localDateTime = fileTime
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        return localDateTime.format(DATE_FORMATTER);
+    }
+
     private String convertByteCountToReadableSize(long bytes) {
         if (-1000 < bytes && bytes < 1000) {
             return STR."\{bytes} B";
@@ -463,6 +519,7 @@ public class AudioPlayerController implements Initializable {
         lineChart2.setOpacity(1f);
         leftChannel.setOpacity(1f);
         rightChannel.setOpacity(1f);
+        infoTextArea.setVisible(false);
     }
 
     public void updateStatusText(String text) {

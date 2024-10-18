@@ -157,5 +157,10 @@
       <Circle fx:id="invertIndicatorOff" fill="RED" layoutX="1070.0" layoutY="585.0" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
       <Circle fx:id="swapIndicatorOn" fill="LIME" layoutX="1244.0" layoutY="648.0" opacity="0.4" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
       <Circle fx:id="swapIndicatorOff" fill="RED" layoutX="1278.0" layoutY="648.0" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
+      <TextArea fx:id="infoTextArea" editable="false" layoutX="423.0" layoutY="236.0" prefHeight="222.0" prefWidth="421.0" text="Info" visible="false" wrapText="true">
+         <font>
+            <Font name="SF Mono Regular" size="15.0" />
+         </font>
+      </TextArea>
    </children>
 </AnchorPane>

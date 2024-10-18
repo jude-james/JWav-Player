@@ -14,6 +14,16 @@
     -fx-background-color: #e3dcd8;
 }
 
+#infoTextArea {
+    -fx-background-color: white;
+    -fx-text-fill: white
+}
+
+#infoTextArea .content {
+    -fx-background-color: black;
+
+}
+
 .chart-plot-background {
     -fx-background-color: #e3dcd8;
 }
