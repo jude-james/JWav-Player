@@ -323,6 +323,13 @@ public class AudioPlayerController implements Initializable {
         }
     }
 
+    @FXML
+    private void onPitchSliderReleased() {
+        Thread taskThread = new Thread(() -> playback.skipTo(playback.getFrameOffset()));
+        taskThread.setDaemon(true);
+        taskThread.start();
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         updateTimeline();
