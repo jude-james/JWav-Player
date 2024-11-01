@@ -34,7 +34,7 @@ public class AudioPlayerController implements Initializable {
     private TextArea textArea;
 
     @FXML
-    private TextArea infoTextArea; // testing
+    private TextArea infoTextArea;
 
     @FXML
     private TextArea statusTextArea;
@@ -119,6 +119,12 @@ public class AudioPlayerController implements Initializable {
 
     private float duration;
 
+    private final XYChart.Series<Number, Number> leftSeries = new XYChart.Series<>();
+    private final XYChart.Series<Number, Number> rightSeries = new XYChart.Series<>();
+    private int sampleJump;
+    private int l = 0;
+    private int r = 1;
+
     @FXML
     private void onSelectFileClick() {
         FileChooser fileChooser = new FileChooser();
@@ -139,8 +145,10 @@ public class AudioPlayerController implements Initializable {
             playback = new Playback(this, wavData);
             displayFileAttributes(wavData);
             displayFileInfo(wavData);
-            setChartYBounds(wavData);
+            initialiseChart(wavData);
             populateChart(wavData);
+            initialiseChart(wavData); // ??????????
+            populateChart(wavData); // ??????????
             resetUI();
 
             playback.setGain((float) volumeSlider.getValue());
@@ -178,11 +186,9 @@ public class AudioPlayerController implements Initializable {
     @FXML
     private void onPlayPauseClick() {
         if (playback != null) {
-            playback.transposePitch((int) pitchSlider.getValue());
-
             Thread taskThread = new Thread(() -> playback.playPause());
             taskThread.setPriority(10);
-            taskThread.setDaemon(true); // unsafe?
+            taskThread.setDaemon(true);
             taskThread.start();
         }
     }
@@ -210,9 +216,7 @@ public class AudioPlayerController implements Initializable {
             reverseIndicatorOff.setOpacity(reverseIndicatorOn.getOpacity());
             reverseIndicatorOn.setOpacity(temp);
 
-            //lineChart1.setScaleX(lineChart1.getScaleX() * -1);
-            //lineChart2.setScaleX(lineChart2.getScaleX() * -1);
-            populateChart(playback.getWavData()); // or flip charts
+            populateChart(playback.getWavData());
         }
     }
 
@@ -224,7 +228,7 @@ public class AudioPlayerController implements Initializable {
                 invertIndicatorOff.setOpacity(invertIndicatorOn.getOpacity());
                 invertIndicatorOn.setOpacity(temp);
 
-                populateChart(playback.getWavData()); // or swap charts
+                populateChart(playback.getWavData());
             }
             else {
                 updateStatusText("Cannot invert non stereo");
@@ -314,7 +318,7 @@ public class AudioPlayerController implements Initializable {
         if (playback != null) {
             int frame = (int) timelineSlider.getValue();
             Thread taskThread = new Thread(() -> playback.skipTo(frame));
-            taskThread.setDaemon(true); // unsafe?
+            taskThread.setDaemon(true);
             taskThread.start();
         }
     }
@@ -520,15 +524,30 @@ public class AudioPlayerController implements Initializable {
         leftChannel.setOpacity(1f);
         rightChannel.setOpacity(1f);
         infoTextArea.setVisible(false);
+        updateStatusText("");
     }
 
     public void updateStatusText(String text) {
         statusTextArea.setText(text);
     }
 
-    private void setChartYBounds(WavData wavData) {
+    public int getPitchValue() {
+        return (int) pitchSlider.getValue();
+    }
+
+    public void initialiseChart(WavData wavData) {
+        float[][] samples = WavParser.getSamples(this, wavData);
+
+        if (wavData.format.numChannels == 1)
+            r = l;
+
+        NumberAxis xAxis1 = (NumberAxis) lineChart1.getXAxis();
+        NumberAxis xAxis2 = (NumberAxis) lineChart2.getXAxis();
         NumberAxis yAxis1 = (NumberAxis) lineChart1.getYAxis();
         NumberAxis yAxis2 = (NumberAxis) lineChart2.getYAxis();
+
+        xAxis1.setUpperBound(samples[l].length);
+        xAxis2.setUpperBound(samples[r].length);
 
         if (wavData.signed) {
             yAxis1.setUpperBound(Math.pow(2, wavData.format.bitsPerSample - 1) - 1);
@@ -543,44 +562,36 @@ public class AudioPlayerController implements Initializable {
             yAxis1.setLowerBound(0);
             yAxis2.setLowerBound(0);
         }
+
+        final int n = 10_000;
+        sampleJump = samples[l].length / n;
+
+        leftSeries.getData().clear();
+        rightSeries.getData().clear();
+
+        for (int i = 0; i < samples[l].length; i+= sampleJump) {
+            leftSeries.getData().add(new XYChart.Data<>(i, 0));
+            rightSeries.getData().add(new XYChart.Data<>(i, 0));
+        }
     }
 
-    public void populateChart(WavData wavData) {
+    private void populateChart(WavData wavData) {
         float[][] samples = WavParser.getSamples(this, wavData);
 
-        // TODO optimise
-
-        int l = 0;
-        int r = l;
-        if (wavData.format.numChannels > 1)
-            r = 1;
-
-        NumberAxis xAxis1 = (NumberAxis) lineChart1.getXAxis();
-        NumberAxis xAxis2 = (NumberAxis) lineChart2.getXAxis();
-        xAxis1.setUpperBound(samples[l].length);
-        xAxis2.setUpperBound(samples[r].length);
-
-        XYChart.Series<Number, Number> leftChannel = new XYChart.Series<>();
-        XYChart.Series<Number, Number> rightChannel = new XYChart.Series<>();
-
-        int n = 10_000;
-        int downSampleScale = samples[l].length / n;
-
-        for (int i = 0; i < samples[l].length; i+= downSampleScale) {
-            int x = i;
+        int seriesIndex = 0; // will be roughly n (10,000)
+        for (int i = 0; i < samples[l].length; i+= sampleJump) {
             float yL = samples[l][i];
             float yR = samples[r][i];
 
-            Platform.runLater(() -> {
-                leftChannel.getData().add(new XYChart.Data<>(x, yL));
-                rightChannel.getData().add(new XYChart.Data<>(x, yR));
-            });
+            leftSeries.getData().get(seriesIndex).setYValue(yL);
+            rightSeries.getData().get(seriesIndex).setYValue(yR);
+            seriesIndex++;
         }
 
         lineChart1.getData().clear();
         lineChart2.getData().clear();
 
-        lineChart1.getData().add(leftChannel);
-        lineChart2.getData().add(rightChannel);
+        lineChart1.getData().add(leftSeries);
+        lineChart2.getData().add(rightSeries);
     }
 }

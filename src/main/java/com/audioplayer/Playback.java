@@ -7,7 +7,7 @@ public class Playback {
     private final AudioPlayerController controller;
     private SourceDataLine line;
 
-    private byte[] currentData;
+    private final byte[] currentData;
     private float currentSampleRate;
     private int currentNumChannels;
     private boolean paused = true;
@@ -31,6 +31,8 @@ public class Playback {
     }
 
     private void createLine() {
+        transposePitch(controller.getPitchValue());
+
         AudioFormat audioFormat = new AudioFormat(currentSampleRate,
                 wavData.format.bitsPerSample, currentNumChannels, wavData.signed, wavData.endianness);
 
@@ -49,9 +51,13 @@ public class Playback {
         }
     }
 
+    private void transposePitch(int semiTones) {
+        currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d) * monoSampleRateAdjustment);
+    }
+
     private void setLineControls() {
         if (line.isControlSupported(FloatControl.Type.PAN)) {
-            FloatControl panControl = (FloatControl) line.getControl(FloatControl.Type.PAN); //TODO move to start to see if performance is better
+            FloatControl panControl = (FloatControl) line.getControl(FloatControl.Type.PAN);
             panControl.setValue(pan);
         }
 
@@ -219,7 +225,10 @@ public class Playback {
     }
 
     public boolean setMono() {
-        if (wavData.format.numChannels > 1 && paused) {
+        if (wavData.format.numChannels > 1) {
+
+            pause();
+
             if (!monoOn) {
                 currentNumChannels = 1;
                 monoSampleRateAdjustment = 2;
@@ -230,6 +239,10 @@ public class Playback {
             }
 
             monoOn = !monoOn;
+
+            Thread taskThread = new Thread(this::play);
+            taskThread.setDaemon(true);
+            taskThread.start();
 
             return true;
         }
@@ -251,27 +264,19 @@ public class Playback {
         }
     }
 
-    public void transposePitch(int semiTones) {
-        currentSampleRate = (float) (wavData.format.sampleRate * Math.pow(2d, (double) semiTones / 12d) * monoSampleRateAdjustment);
-    }
-
     public WavData getWavData() {
         WavFormat currentFormat = new WavFormat();
         currentFormat.audioFormat = wavData.format.audioFormat;
         currentFormat.numChannels = currentNumChannels;
         currentFormat.sampleRate = currentSampleRate;
         currentFormat.byteRate =  wavData.format.byteRate;
-        currentFormat.blockAlign =  currentNumChannels * wavData.format.bitsPerSample / 8; // can't use existing blockAlign in case num channels changed
+        currentFormat.blockAlign =  currentNumChannels * wavData.format.bitsPerSample / 8;
         currentFormat.bitsPerSample =  wavData.format.bitsPerSample;
 
         WavData currentWavData = new WavData();
         currentWavData.format = currentFormat;
         currentWavData.signed = wavData.signed;
-
-        //TODO take pan and gain values to save
-        // use linear scale calculation shown on documentation for volume and handle clipping somehow
         currentWavData.data = currentData;
-
         currentWavData.duration = wavData.duration;
 
         return currentWavData;

@@ -13,7 +13,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1300.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.audioplayer.AudioPlayerController">
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1303.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.audioplayer.AudioPlayerController">
    <children>
       <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#onSelectFileClick" prefHeight="50.0" prefWidth="150.0" text="Select File">
          <font>
@@ -62,7 +62,7 @@
             <Point3D />
          </rotationAxis>
       </LineChart>
-      <LineChart fx:id="lineChart2" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="343.0" legendVisible="false" prefHeight="200.0" prefWidth="1280.0" verticalGridLinesVisible="false">
+      <LineChart fx:id="lineChart2" animated="false" createSymbols="false" horizontalZeroLineVisible="false" layoutX="-6.0" layoutY="335.0" legendVisible="false" prefHeight="200.0" prefWidth="1280.0" verticalGridLinesVisible="false">
          <xAxis>
             <NumberAxis animated="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
          </xAxis>
@@ -85,7 +85,7 @@
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <Button fx:id="rightChannel" layoutX="1265.0" layoutY="367.0" mnemonicParsing="false" onAction="#onRightChannelClick" prefHeight="150.0" prefWidth="25.0" text="R">
+      <Button fx:id="rightChannel" layoutX="1265.0" layoutY="359.0" mnemonicParsing="false" onAction="#onRightChannelClick" prefHeight="150.0" prefWidth="25.0" text="R">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font>
@@ -95,7 +95,7 @@
             <Font name="SF Mono Bold" size="13.0" />
          </font>
       </Button>
-      <Button layoutX="1140.0" layoutY="14.0" mnemonicParsing="false" onAction="#onInfoClick" prefHeight="110.0" prefWidth="150.0" text="Info">
+      <Button layoutX="1140.0" layoutY="14.0" mnemonicParsing="false" onAction="#onInfoClick" opacity="0.9" prefHeight="110.0" prefWidth="150.0" text="Info">
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font>
@@ -152,7 +152,7 @@
          </font>
       </Text>
       <Line endX="-33.39710998535156" endY="122.2840576171875" layoutX="918.0" layoutY="561.0" startX="-33.39710998535156" startY="-23.0" stroke="#e3dcd8" strokeWidth="2.0" />
-      <Line fx:id="crosshair" endX="-47.0" endY="116.0" layoutX="59.0" layoutY="409.0" startX="-47.0" startY="-232.5" stroke="RED" strokeWidth="1.5" />
+      <Line fx:id="crosshair" endX="-47.0" endY="108.0" layoutX="59.0" layoutY="409.0" startX="-47.0" startY="-232.5" stroke="RED" strokeWidth="1.5" />
       <Circle fx:id="invertIndicatorOn" fill="LIME" layoutX="1036.0" layoutY="585.0" opacity="0.4" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
       <Circle fx:id="invertIndicatorOff" fill="RED" layoutX="1070.0" layoutY="585.0" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
       <Circle fx:id="swapIndicatorOn" fill="LIME" layoutX="1244.0" layoutY="648.0" opacity="0.4" radius="15.0" stroke="WHITE" strokeType="INSIDE" />
