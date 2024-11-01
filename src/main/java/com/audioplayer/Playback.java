@@ -165,7 +165,7 @@ public class Playback {
         int frameSize = wavData.format.blockAlign;
         int bytesPerSample = wavData.format.bitsPerSample / 8;
 
-        if (wavData.format.numChannels == 2) {
+        if (currentNumChannels == 2) {
             for (int i = 0; i < wavData.data.length; i += frameSize) {
                 for (int j = 0; j < bytesPerSample; j++) {
                     byte temp = currentData[i + j];
@@ -226,7 +226,6 @@ public class Playback {
 
     public boolean setMono() {
         if (wavData.format.numChannels > 1) {
-
             pause();
 
             if (!monoOn) {
