@@ -179,7 +179,7 @@ public class AudioPlayerController implements Initializable {
             return;
         }
 
-        WavData wavData = playback.getWavData();
+        WavData wavData = playback.getWavData(true);
         WavParser.write(newFile, wavData);
     }
 
@@ -216,7 +216,7 @@ public class AudioPlayerController implements Initializable {
             reverseIndicatorOff.setOpacity(reverseIndicatorOn.getOpacity());
             reverseIndicatorOn.setOpacity(temp);
 
-            populateChart(playback.getWavData());
+            populateChart(playback.getWavData(false));
         }
     }
 
@@ -228,7 +228,7 @@ public class AudioPlayerController implements Initializable {
                 invertIndicatorOff.setOpacity(invertIndicatorOn.getOpacity());
                 invertIndicatorOn.setOpacity(temp);
 
-                populateChart(playback.getWavData());
+                populateChart(playback.getWavData(false));
             }
             else {
                 updateStatusText("Cannot invert non stereo");
@@ -261,7 +261,7 @@ public class AudioPlayerController implements Initializable {
                 swapIndicatorOff.setOpacity(swapIndicatorOn.getOpacity());
                 swapIndicatorOn.setOpacity(temp);
 
-                populateChart(playback.getWavData());
+                populateChart(playback.getWavData(false));
             }
         }
     }
@@ -585,7 +585,7 @@ public class AudioPlayerController implements Initializable {
     private void populateChart(WavData wavData) {
         float[][] samples = WavParser.getSamples(this, wavData);
 
-        int seriesIndex = 0; // will be roughly n (10,000)
+        int seriesIndex = 0; // will be roughly n (= 10,000)
         for (int i = 0; i < samples[l].length; i+= sampleJump) {
             float yL = samples[l][i];
             float yR = samples[r][i];

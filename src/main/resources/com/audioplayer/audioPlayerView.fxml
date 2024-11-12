@@ -35,7 +35,7 @@
          <font>
             <Font name="SF Mono Bold" size="13.0" />
          </font></Button>
-      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="151.0" layoutY="564.0" majorTickUnit="4.0" max="24.0" min="-24.0" onMouseReleased="#onPitchSliderReleased" prefHeight="102.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
+      <Slider fx:id="pitchSlider" blockIncrement="1.0" layoutX="151.0" layoutY="590.0" majorTickUnit="4.0" max="24.0" min="-24.0" onMouseReleased="#onPitchSliderReleased" prefHeight="50.0" prefWidth="431.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" />
       <Text fx:id="pitchSliderValue" layoutX="323.0" layoutY="662.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.0 st" textAlignment="CENTER" wrappingWidth="87.21630859375">
          <font>
             <Font name="SF Mono Regular" size="15.0" />

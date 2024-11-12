@@ -226,27 +226,36 @@ public class Playback {
 
     public boolean setMono() {
         if (wavData.format.numChannels > 1) {
-            pause();
-
-            if (!monoOn) {
-                currentNumChannels = 1;
-                monoSampleRateAdjustment = 2;
+            if (paused) {
+                flipMono();
             }
             else {
-                currentNumChannels = wavData.format.numChannels;
-                monoSampleRateAdjustment = 1;
+                pause();
+
+                flipMono();
+
+                Thread taskThread = new Thread(this::play);
+                taskThread.setDaemon(true);
+                taskThread.start();
+
             }
-
-            monoOn = !monoOn;
-
-            Thread taskThread = new Thread(this::play);
-            taskThread.setDaemon(true);
-            taskThread.start();
-
             return true;
         }
 
         return false;
+    }
+
+    private void flipMono() {
+        if (!monoOn) {
+            currentNumChannels = 1;
+            monoSampleRateAdjustment = 2;
+        }
+        else {
+            currentNumChannels = wavData.format.numChannels;
+            monoSampleRateAdjustment = 1;
+        }
+
+        monoOn = !monoOn;
     }
 
     public void setPan(float value) {
@@ -263,13 +272,20 @@ public class Playback {
         }
     }
 
-    public WavData getWavData() {
+    public WavData getWavData(boolean toSave) {
         WavFormat currentFormat = new WavFormat();
         currentFormat.audioFormat = wavData.format.audioFormat;
-        currentFormat.numChannels = currentNumChannels;
+
+        if (toSave) {
+            currentFormat.numChannels = currentNumChannels;
+        }
+        else { // otherwise we lie so the graph doesn't try and show just one channel when in mono, crude solution
+            currentFormat.numChannels = wavData.format.numChannels;
+        }
+
         currentFormat.sampleRate = currentSampleRate;
         currentFormat.byteRate =  wavData.format.byteRate;
-        currentFormat.blockAlign =  currentNumChannels * wavData.format.bitsPerSample / 8;
+        currentFormat.blockAlign =  currentFormat.numChannels * wavData.format.bitsPerSample / 8;
         currentFormat.bitsPerSample =  wavData.format.bitsPerSample;
 
         WavData currentWavData = new WavData();
