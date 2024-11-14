@@ -625,6 +625,9 @@ public class AudioPlayerController implements Initializable {
 
         final int n = 10_000;
         sampleJump = samples[l].length / n;
+        if (sampleJump == 0) {
+            sampleJump = 1;
+        }
 
         leftSeries.getData().clear();
         rightSeries.getData().clear();
