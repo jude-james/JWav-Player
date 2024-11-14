@@ -15,6 +15,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.controlsfx.control.RangeSlider;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +60,9 @@ public class AudioPlayerController implements Initializable {
 
     @FXML
     private Slider timelineSlider;
+
+    @FXML
+    private RangeSlider rangeSlider;
 
     @FXML
     private Text currentTime;
@@ -143,21 +147,22 @@ public class AudioPlayerController implements Initializable {
             }
 
             playback = new Playback(this, wavData);
-            displayFileAttributes(wavData);
-            displayFileInfo(wavData);
-            initialiseChart(wavData);
-            populateChart(wavData);
-            initialiseChart(wavData); // ??????????
-            populateChart(wavData); // ??????????
-            resetUI();
 
             playback.setGain((float) volumeSlider.getValue());
             playback.setPan((float) panSlider.getValue());
 
             currentFileName = file.getName();
             duration = wavData.duration;
-            totalTime.setText(convertDurationToReadableTime(duration));
-            timelineSlider.setMax(playback.getNumFrames());
+
+            displayFileAttributes(wavData);
+            displayFileInfo(wavData);
+            initialiseChart(wavData);
+            populateChart(wavData);
+            initialiseChart(wavData); // ??????????
+            populateChart(wavData); // ??????????
+
+            resetUI();
+            setUI();
         }
     }
 
@@ -534,12 +539,29 @@ public class AudioPlayerController implements Initializable {
         updateStatusText("");
     }
 
+    private void setUI() {
+        totalTime.setText(convertDurationToReadableTime(duration));
+        timelineSlider.setMax(playback.getNumFrames());
+
+        rangeSlider.setMax(playback.getNumFrames());
+        rangeSlider.setHighValue(rangeSlider.getMax());
+        rangeSlider.setLowValue(0);
+    }
+
     public void updateStatusText(String text) {
         statusTextArea.setText(text);
     }
 
     public int getPitchValue() {
         return (int) pitchSlider.getValue();
+    }
+
+    public int getTrimLow() {
+        return (int) rangeSlider.getLowValue();
+    }
+
+    public int getTrimHigh() {
+        return (int) rangeSlider.getHighValue();
     }
 
     public void initialiseChart(WavData wavData) {

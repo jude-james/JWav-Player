@@ -50,6 +50,26 @@
     -fx-background-color: #e3dcd8;
 }
 
+.range-slider .range-bar {
+    -fx-border-color: white;
+    -fx-background-color: #000270;
+}
+
+.range-slider .track {
+    -fx-background-color: #b3a79f;
+}
+
+.range-slider .low-thumb {
+    -fx-animated: false;
+    -fx-background-color: #e3dcd8;
+
+
+}
+.range-slider .high-thumb {
+    -fx-background-color: #e3dcd8;
+
+}
+
 #timelineSlider {
     -default-track-color: #b3a79f;
     -track-color: #b3a79f;
@@ -62,7 +82,7 @@
     -track-color;
 }
 
-#pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime {
+#pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime, #trimTimeLow, #trimTimeHIgh {
     -fx-fill: #e3dcd8;
 }
 

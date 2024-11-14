@@ -274,24 +274,34 @@ public class Playback {
 
     public WavData getWavData(boolean toSave) {
         WavFormat currentFormat = new WavFormat();
-        currentFormat.audioFormat = wavData.format.audioFormat;
+        WavData currentWavData = new WavData();
 
         if (toSave) {
+            int frameSize = wavData.format.blockAlign;
+            int trimmedFrameLength = controller.getTrimHigh() - controller.getTrimLow();
+            int trimmedByteLength = trimmedFrameLength * frameSize;
+
+            byte[] trimmedData = new byte[trimmedByteLength];
+            for (int i = 0; i < trimmedData.length; i++) {
+                trimmedData[i] = currentData[i + (controller.getTrimLow() * frameSize)];
+            }
+
             currentFormat.numChannels = currentNumChannels;
+            currentWavData.data = trimmedData;
         }
-        else { // otherwise we lie so the graph doesn't try and show just one channel when in mono, crude solution
+        else {
             currentFormat.numChannels = wavData.format.numChannels;
+            currentWavData.data = currentData;
         }
 
+        currentFormat.audioFormat = wavData.format.audioFormat;
         currentFormat.sampleRate = currentSampleRate;
         currentFormat.byteRate =  wavData.format.byteRate;
         currentFormat.blockAlign =  currentFormat.numChannels * wavData.format.bitsPerSample / 8;
         currentFormat.bitsPerSample =  wavData.format.bitsPerSample;
 
-        WavData currentWavData = new WavData();
         currentWavData.format = currentFormat;
         currentWavData.signed = wavData.signed;
-        currentWavData.data = currentData;
         currentWavData.duration = wavData.duration;
 
         return currentWavData;
