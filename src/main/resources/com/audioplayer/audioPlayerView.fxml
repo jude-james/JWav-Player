@@ -136,6 +136,8 @@
             <Font name="SF Mono Regular" size="15.0" />
          </font>
       </Text>
+      <Line fx:id="crosshairLow" endX="-47.0" endY="108.0" layoutX="59.0" layoutY="409.0" startX="-47.0" startY="-232.5" stroke="#00ab00" strokeWidth="2.0" />
+      <Line fx:id="crosshairHigh" endX="-47.0" endY="108.0" layoutX="59.0" layoutY="409.0" startX="-47.0" startY="-232.5" stroke="#2900ff" strokeWidth="2.0" />
       <TextArea fx:id="statusTextArea" editable="false" layoutX="925.0" layoutY="14.0" prefHeight="110.0" prefWidth="239.0" promptText="Message" wrapText="true">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
@@ -169,7 +171,7 @@
             <Font name="SF Mono Regular" size="15.0" />
          </font>
       </Text>
-      <Text fx:id="trimTimeHIgh" layoutX="1162.0" layoutY="543.0" strokeType="OUTSIDE" strokeWidth="0.0" text="00:00" textAlignment="CENTER" wrappingWidth="87.21630859375">
+      <Text fx:id="trimTimeHigh" layoutX="1162.0" layoutY="543.0" strokeType="OUTSIDE" strokeWidth="0.0" text="00:00" textAlignment="CENTER" wrappingWidth="87.21630859375">
          <font>
             <Font name="SF Mono Regular" size="15.0" />
          </font>

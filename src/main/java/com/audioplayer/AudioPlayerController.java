@@ -71,10 +71,22 @@ public class AudioPlayerController implements Initializable {
     private Text totalTime;
 
     @FXML
+    private Text trimTimeLow;
+
+    @FXML
+    private Text trimTimeHigh;
+
+    @FXML
     private TextField tempo;
 
     @FXML
     private Line crosshair;
+
+    @FXML
+    private Line crosshairLow;
+
+    @FXML
+    private Line crosshairHigh;
 
     @FXML
     private LineChart<Number, Number> lineChart1;
@@ -363,6 +375,25 @@ public class AudioPlayerController implements Initializable {
                         float position = (ratioSlider * (endX - startX)) + startX;
                         crosshair.setStartX(position);
                         crosshair.setEndX(position);
+
+                        // range slider
+                        float ratioRangeSliderLow = (float) rangeSlider.getLowValue() / playback.getNumFrames();
+                        float ratioRangeSliderHigh = (float) rangeSlider.getHighValue() / playback.getNumFrames();
+
+                        float lowTime = duration * ratioRangeSliderLow;
+                        float highTime = duration * ratioRangeSliderHigh;
+
+                        trimTimeLow.setText(convertDurationToReadableTime(lowTime));
+                        trimTimeHigh.setText(convertDurationToReadableTime(highTime));
+
+                        float positionLow = (ratioRangeSliderLow * (endX - startX)) + startX;
+                        float positionHigh = (ratioRangeSliderHigh * (endX - startX)) + startX;
+
+                        crosshairLow.setStartX(positionLow);
+                        crosshairLow.setEndX(positionLow);
+
+                        crosshairHigh.setStartX(positionHigh);
+                        crosshairHigh.setEndX(positionHigh);
                     });
                 }
 

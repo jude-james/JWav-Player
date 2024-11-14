@@ -52,7 +52,7 @@
 
 .range-slider .range-bar {
     -fx-border-color: white;
-    -fx-background-color: #000270;
+    -fx-background-color: black;
 }
 
 .range-slider .track {
@@ -82,7 +82,7 @@
     -track-color;
 }
 
-#pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime, #trimTimeLow, #trimTimeHIgh {
+#pitchSliderValue, #volumeSliderValue, #panSliderValue, #pitch, #volume, #pan, #currentTime, #totalTime, #trimTimeLow, #trimTimeHigh {
     -fx-fill: #e3dcd8;
 }
 
