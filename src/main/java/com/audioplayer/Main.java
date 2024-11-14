@@ -3,9 +3,12 @@ package com.audioplayer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Main extends Application {
     @Override
@@ -14,7 +17,7 @@ public class Main extends Application {
         Scene scene = new Scene(fxmlLoader.load());
 
         stage.setScene(scene);
-        stage.setTitle("Advanced Audio Player");
+        stage.setTitle("JAudio Player");
         stage.setResizable(false);
 
         stage.show();
