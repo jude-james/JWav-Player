@@ -1,4 +1,4 @@
-***Basic Audio Player / Editor***
+***Simple Wav Player / Editor***
 
 Features:
 - Load and play wav files
