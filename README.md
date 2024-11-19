@@ -15,3 +15,4 @@ Fun features:
 - Automatically swap beats 2 & 4  
 (You must know the bpm of the song, use tunebat.com)
 
+![alt text](https://github.com/jude-james/AudioPlayer/blob/main/guishowcase.png)
