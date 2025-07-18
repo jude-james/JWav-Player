@@ -1,8 +1,14 @@
-***Simple Wav Player / Editor***
+# JWav Player
 
-This is JWav Player. It offers some run-of-the-mill functionality for playback and editing of wav files, but the standout feature is being able to swap beats 2 & 4 on the fly — which I hadn't seen elsewhere. It gives quite fun results, some songs sound awful and some sound like a whole new version. Despite my best efforts, I couldn't build the project without a multitude of errors, even trying to run as a jar on other machines with the correct jdk didn't work, so I've given up for now.
+## Overview
 
-Ultimately I enjoyed working on this and would be keen to expand on it in the future. Cloning the repo should allow you to try it.
+A unique WAV player, allowing you to load in any .wav file 
+and play around with a number of playback options on the fly.
+
+The standout feature is being able to swap beats 2&4 automatically — which I hadn't seen elsewhere. 
+This leads to cool results, try it on your favourite songs!
+
+## Features
 
 Features:
 - Load and play wav files
@@ -17,6 +23,34 @@ Features:
 Fun features:
 - Reverse song
 - Automatically swap beats 2 & 4  
-(You must know the bpm of the song, use tunebat.com)
+  (You must know the bpm of the song, use tunebat.com)
 
-![alt text](https://github.com/jude-james/AudioPlayer/blob/main/guishowcase.png)
+## How To Run
+
+### Requirements
+
+- Java JDK 22 (Java 17+ likely works)
+- Maven 3.8+
+
+```bash
+# 1. Clone repo
+git clone https://github.com/jude-james/JWav-Player.git
+
+# 2. Change directory
+cd JWav-Player
+
+# 3. Run with maven
+mvn clean javafx:run
+
+# Or use included maven wrapper
+
+# macOS/Linux
+./mvnw clean javafx:run
+
+# Windows
+mvnw.cmd clean javafx:run
+```
+
+## Screenshots
+
+![](screenshot1.png)
