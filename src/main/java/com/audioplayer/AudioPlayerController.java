@@ -417,10 +417,10 @@ public class AudioPlayerController implements Initializable {
             pitchSlider.setValue(new_val.intValue());
 
             if (pitchSlider.getValue() > 0) {
-                pitchSliderValue.setText(STR."+\{pitchSlider.getValue()} st");
+                pitchSliderValue.setText("+" + pitchSlider.getValue() + " st");
             }
             else {
-                pitchSliderValue.setText(STR."\{pitchSlider.getValue()} st");
+                pitchSliderValue.setText(pitchSlider.getValue() + " st");
             }
         });
 
@@ -428,10 +428,10 @@ public class AudioPlayerController implements Initializable {
             volumeSlider.setValue(new_val.intValue());
 
             if (volumeSlider.getValue() > 0) {
-                volumeSliderValue.setText(STR."+\{(int) volumeSlider.getValue()} dB");
+                volumeSliderValue.setText("+" + (int) volumeSlider.getValue() + " dB");
             }
             else {
-                volumeSliderValue.setText(STR."\{(int) volumeSlider.getValue()} dB");
+                volumeSliderValue.setText((int) volumeSlider.getValue() + " dB");
             }
 
             if (playback != null) {
@@ -444,7 +444,7 @@ public class AudioPlayerController implements Initializable {
             panSlider.setValue(rounded);
 
             if (panSlider.getValue() > 0) {
-                panSliderValue.setText(STR."+\{rounded}");
+                panSliderValue.setText("+" + rounded);
             }
             else {
                 panSliderValue.setText(String.valueOf(rounded));
@@ -480,27 +480,27 @@ public class AudioPlayerController implements Initializable {
         String nameExcludingExtension = file.getName().substring(0, file.getName().length() - 4);
         textArea.setText(nameExcludingExtension);
 
-        textArea.appendText(STR."\n\{file.getPath()}");
+        textArea.appendText("\n" + file.getPath());
 
         String duration = convertDurationToReadableTime(wavData.duration);
-        textArea.appendText(STR."\nDuration: \{duration}");
+        textArea.appendText("\nDuration: " + duration);
 
-        textArea.appendText(STR."\n\{wavData.format.sampleRate} Hz");
+        textArea.appendText("\n" + wavData.format.sampleRate + " Hz");
 
         String fileSize = convertByteCountToReadableSize(file.length());
-        textArea.appendText(STR."\n\{fileSize}");
+        textArea.appendText("\n" + fileSize);
     }
 
     private void displayFileInfo(WavData wavData) {
         infoTextArea.setText("Kind: Waveform audio");
 
         String fileLengthBytes = new DecimalFormat("#,###").format(file.length());
-        infoTextArea.appendText(STR."\nSize: \{fileLengthBytes} bytes");
+        infoTextArea.appendText("\nSize: " + fileLengthBytes + " bytes");
 
         String duration = convertDurationToReadableTime(wavData.duration);
-        infoTextArea.appendText(STR."\nDuration: \{duration}");
+        infoTextArea.appendText("\nDuration: " + duration);
 
-        infoTextArea.appendText(STR."\nSample rate: \{wavData.format.sampleRate} Hz");
+        infoTextArea.appendText("\nSample rate: " + wavData.format.sampleRate + " Hz");
 
         String audioChannels;
         if (wavData.format.numChannels == 1)
@@ -509,16 +509,16 @@ public class AudioPlayerController implements Initializable {
             audioChannels = "Stereo";
         else
             audioChannels = Integer.toString(wavData.format.numChannels);
-        infoTextArea.appendText(STR."\nAudio channels: \{audioChannels}");
+        infoTextArea.appendText("\nAudio channels: " + audioChannels);
 
-        infoTextArea.appendText(STR."\nBits per sample: \{wavData.format.bitsPerSample}");
+        infoTextArea.appendText("\nBits per sample: " + wavData.format.bitsPerSample);
 
         try {
             BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 
             infoTextArea.appendText("\n");
-            infoTextArea.appendText(STR."\nCreated: \{formatDateTime(attributes.creationTime())}");
-            infoTextArea.appendText(STR."\nLast accessed: \{formatDateTime(attributes.lastAccessTime())}");
+            infoTextArea.appendText("\nCreated: " + formatDateTime(attributes.creationTime()));
+            infoTextArea.appendText("\nLast accessed: " + formatDateTime(attributes.lastAccessTime()));
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -538,7 +538,7 @@ public class AudioPlayerController implements Initializable {
 
     private String convertByteCountToReadableSize(long bytes) {
         if (-1000 < bytes && bytes < 1000) {
-            return STR."\{bytes} B";
+            return bytes + " B";
         }
 
         CharacterIterator iterator = new StringCharacterIterator("KMGTPE");

@@ -76,7 +76,7 @@ public class WavParser {
             }
 
             if (file.length() - 8 != chunkSize) {
-                controller.updateStatusText(STR."Invalid file size: \{file.length()}. Expected: \{chunkSize + 8}");
+                controller.updateStatusText("Invalid file size: " + file.length() + ". Expected: " + chunkSize + 8);
                 return null;
             }
 
@@ -148,7 +148,7 @@ public class WavParser {
 
         int sampleBits = wavData.format.bitsPerSample;
         if (sampleBits != 8 && sampleBits != 16 && sampleBits != 24 && sampleBits != 32) {
-            controller.updateStatusText(STR."Unsupported bits per sample: \{sampleBits}");
+            controller.updateStatusText("Unsupported bits per sample: " + sampleBits);
             return samples;
         }
 
