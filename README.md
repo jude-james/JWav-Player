@@ -54,3 +54,4 @@ mvnw.cmd clean javafx:run
 ## Screenshots
 
 ![](screenshot1.png)
+![](screenshot2.png)
